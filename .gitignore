@@ -1,0 +1,26 @@
+# Local agent and prompt artifacts
+.agents/
+.codex/
+.agent/
+.cursor/
+.windsurf/
+.aider*
+
+# Agent instruction files kept outside the repository
+AGENT*.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md
+
+# Prompt files and local prompt workspaces
+*.prompt
+*.prompt.md
+*.prompt.txt
+*PROMPT*.md
+*PROMPT*.txt
+*prompt*.md
+*prompt*.txt
+agent-prompts/
+agent_prompts/
+prompts/
