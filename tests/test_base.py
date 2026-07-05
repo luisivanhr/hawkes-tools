@@ -9,7 +9,7 @@ from hawkes_tools.base import Base, ThreadPool, actual_kwargs
 
 
 class BaseUtilitiesTest(unittest.TestCase):
-    def test_base_helper_methods_match_standalone_tick_surface(self):
+    def test_base_helper_methods_match_standalone_surface(self):
         class Toy(Base):
             _attrinfos = {"name": {"writable": False}, "count": {}, "_private": {}}
 
@@ -30,7 +30,7 @@ class BaseUtilitiesTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "key as string"):
             toy._set(3, "bad")
 
-    def test_actual_kwargs_matches_tick_decorator_semantics(self):
+    def test_actual_kwargs_matches_reference_decorator_semantics(self):
         @actual_kwargs
         def f(arg1, arg2, kwarg1=None, kwarg2="", kwarg3=1, kwarg4=True):
             kwargs_ = sorted(f.actual_kwargs.items())

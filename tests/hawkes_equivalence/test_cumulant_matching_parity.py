@@ -186,7 +186,7 @@ def _reference_empirical_cumulants(realizations, support):
 
 
 class HawkesCumulantMatchingParityTest(unittest.TestCase):
-    def test_theoretical_cumulants_match_tick_cpp_formulas(self):
+    def test_theoretical_cumulants_match_reference_formulas(self):
         fixture = _load_train_data()[2.0]
         baseline = fixture["baseline"]
         adjacency = fixture["adjacency"]
@@ -212,7 +212,7 @@ class HawkesCumulantMatchingParityTest(unittest.TestCase):
         np.testing.assert_allclose(cumulants.covariance, expected_C, rtol=1e-13, atol=1e-13)
         np.testing.assert_allclose(cumulants.skewness, expected_K, rtol=1e-13, atol=1e-13)
 
-    def test_empirical_cumulants_match_tick_cpp_loop_reference(self):
+    def test_empirical_cumulants_match_loop_reference(self):
         for support, fixture in _load_train_data().items():
             with self.subTest(support=support):
                 learner = HawkesCumulantMatching(integration_support=support)
@@ -233,7 +233,7 @@ class HawkesCumulantMatchingParityTest(unittest.TestCase):
                 learner._set_data(fixture["timestamps"])
                 self.assertTrue(learner._cumulant_computer.cumulants_ready)
 
-    def test_compute_cumulants_without_data_matches_tick_error(self):
+    def test_compute_cumulants_without_data_matches_reference_error(self):
         learner = HawkesCumulantMatching(
             100.0,
             cs_ratio=0.9,
@@ -249,7 +249,7 @@ class HawkesCumulantMatchingParityTest(unittest.TestCase):
             learner.compute_cumulants()
 
     @unittest.skipIf(importlib.util.find_spec("torch") is None, "PyTorch not installed")
-    def test_pytorch_cumulant_solve_runs_for_tick_solve_variants(self):
+    def test_pytorch_cumulant_solve_runs_for_reference_solve_variants(self):
         fixture = _load_train_data()[2.0]
         events = fixture["timestamps"]
         n_nodes = len(events[0])

@@ -61,8 +61,8 @@ PASS_HAWKES_EM_METHODS = {
 }
 
 
-def _discover_tick_hawkes_tests():
-    manifest_path = Path(__file__).with_name("frozen_tick_hawkes_tests.txt")
+def _discover_hawkes_reference_tests():
+    manifest_path = Path(__file__).with_name("frozen_hawkes_reference_tests.txt")
     return [
         line.strip()
         for line in manifest_path.read_text(encoding="utf-8").splitlines()
@@ -70,7 +70,7 @@ def _discover_tick_hawkes_tests():
     ]
 
 
-def classify_tick_test(test_id):
+def classify_reference_test(test_id):
     path, _, qualified_name = test_id.partition("::")
     filename = Path(path).name
     method = qualified_name.rsplit(".", 1)[-1]
@@ -136,19 +136,19 @@ def classify_tick_test(test_id):
     return "out_of_scope_non_hawkes", "not part of the Hawkes/point-process target surface"
 
 
-class TickEquivalenceLedgerTest(unittest.TestCase):
-    def test_every_local_tick_hawkes_test_is_classified(self):
-        tests = _discover_tick_hawkes_tests()
+class EquivalenceLedgerTest(unittest.TestCase):
+    def test_every_local_hawkes_reference_test_is_classified(self):
+        tests = _discover_hawkes_reference_tests()
         self.assertEqual(len(tests), 171)
         for test_id in tests:
             with self.subTest(test_id=test_id):
-                status, reason = classify_tick_test(test_id)
+                status, reason = classify_reference_test(test_id)
                 self.assertIn(status, ALLOWED_STATUSES)
                 self.assertTrue(reason)
 
     def test_ledger_has_both_green_and_gap_work(self):
         counts = collections.Counter(
-            classify_tick_test(test_id)[0] for test_id in _discover_tick_hawkes_tests()
+            classify_reference_test(test_id)[0] for test_id in _discover_hawkes_reference_tests()
         )
         self.assertEqual(counts["pass"], 171)
         self.assertEqual(counts["xfail_equivalence_gap"], 0)
@@ -158,8 +158,8 @@ class TickEquivalenceLedgerTest(unittest.TestCase):
     def test_xfail_gaps_match_contract_registry(self):
         actual = {
             test_id
-            for test_id in _discover_tick_hawkes_tests()
-            if classify_tick_test(test_id)[0] == "xfail_equivalence_gap"
+            for test_id in _discover_hawkes_reference_tests()
+            if classify_reference_test(test_id)[0] == "xfail_equivalence_gap"
         }
         self.assertSetEqual(actual, flatten(EXPECTED_XFAIL_GAPS))
 

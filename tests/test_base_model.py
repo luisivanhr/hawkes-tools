@@ -72,7 +72,7 @@ class SelfConcordantModel(ModelSelfConcordant):
 
 
 class BaseModelTest(unittest.TestCase):
-    def test_first_and_second_order_counters_match_tick_protocol(self):
+    def test_first_and_second_order_counters_match_reference_protocol(self):
         model = QuadraticModel().fit(np.array([1.0, 2.0]))
         coeffs = np.array([2.0, 4.0])
 

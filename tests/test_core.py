@@ -31,7 +31,7 @@ class HawkesPublicAPITest(unittest.TestCase):
     def test_hawkes_public_all_exports_are_stable(self):
         import hawkes_tools.hawkes as hawkes_api
 
-        tick_hawkes_public_names = {
+        expected_hawkes_public_names = {
             "TimeFunction",
             "HawkesKernel",
             "HawkesKernel0",
@@ -62,7 +62,7 @@ class HawkesPublicAPITest(unittest.TestCase):
         }
 
         exported_names = set(hawkes_api.__all__)
-        self.assertEqual(set(), tick_hawkes_public_names - exported_names)
+        self.assertEqual(set(), expected_hawkes_public_names - exported_names)
         for name in hawkes_api.__all__:
             self.assertTrue(hasattr(hawkes_api, name), name)
 

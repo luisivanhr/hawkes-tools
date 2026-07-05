@@ -32,7 +32,7 @@ class OptimCompatibilityTest(unittest.TestCase):
         np.testing.assert_allclose(ProxL1(0.25).call(np.array([1.0, -0.1]), step=1.0), [0.75, 0.0])
         np.testing.assert_allclose(ProxPositive().call(np.array([1.0, -0.1])), [1.0, 0.0])
 
-    def test_tick_style_solver_flow_runs_for_all_public_solvers(self):
+    def test_reference_style_solver_flow_runs_for_all_public_solvers(self):
         for solver_class in [GD, AGD, BFGS, SVRG, SAGA, SDCA]:
             with self.subTest(solver=solver_class.__name__):
                 with warnings.catch_warnings():

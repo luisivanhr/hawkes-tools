@@ -40,7 +40,7 @@ class RobustLossModelsTest(unittest.TestCase):
         self.y_cls = np.array([-1.0, 1.0, -1.0, 1.0, -1.0], dtype=float)
         self.beta = np.array([0.4, -0.35, 0.2, 0.15], dtype=float)
 
-    def test_public_exports_cover_tick_robust_loss_names(self):
+    def test_public_exports_cover_reference_robust_loss_names(self):
         import hawkes_tools.robust as robust
 
         expected = {

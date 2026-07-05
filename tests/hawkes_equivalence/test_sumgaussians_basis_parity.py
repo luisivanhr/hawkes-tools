@@ -186,9 +186,9 @@ class HawkesSumGaussiansParityTest(unittest.TestCase):
 
 class HawkesBasisKernelsParityTest(unittest.TestCase):
     def test_em_basis_kernels(self):
-        ticks = _toy_events()
+        events = _toy_events()
         n_basis = 2
-        n_nodes = len(ticks[0])
+        n_nodes = len(events[0])
         kernel_support = 4
         kernel_dt = 0.1
         kernel_size = int(np.ceil(kernel_support / kernel_dt))
@@ -211,7 +211,7 @@ class HawkesBasisKernelsParityTest(unittest.TestCase):
             max_iter=5,
             ode_max_iter=100,
         )
-        em.fit(ticks, baseline_start=mu, amplitudes_start=auvd, basis_kernels_start=gdm)
+        em.fit(events, baseline_start=mu, amplitudes_start=auvd, basis_kernels_start=gdm)
 
         np.testing.assert_array_almost_equal(em.baseline, [0.153022, 0.179124], decimal=4)
         np.testing.assert_array_almost_equal(

@@ -11,7 +11,7 @@ from hawkes_tools.robust import features_normal_cov_toeplitz as robust_toeplitz
 
 
 class SimulationHelperCompatibilityTest(unittest.TestCase):
-    def test_public_exports_match_tick_simulation_helpers(self):
+    def test_public_exports_match_reference_simulation_helpers(self):
         self.assertEqual(
             set(simulation.__all__),
             {
@@ -22,7 +22,7 @@ class SimulationHelperCompatibilityTest(unittest.TestCase):
             },
         )
 
-    def test_weights_sparse_exp_matches_tick_formula(self):
+    def test_weights_sparse_exp_matches_reference_formula(self):
         weights = simulation.weights_sparse_exp(n_weigths=6, nnz=4, scale=2.0)
 
         np.testing.assert_allclose(
@@ -33,7 +33,7 @@ class SimulationHelperCompatibilityTest(unittest.TestCase):
         weights32 = simulation.weights_sparse_exp(n_weigths=4, nnz=2, dtype="float32")
         self.assertEqual(weights32.dtype, np.dtype("float32"))
 
-    def test_weights_sparse_exp_clips_nnz_like_tick(self):
+    def test_weights_sparse_exp_clips_nnz_like_reference(self):
         with self.assertWarnsRegex(RuntimeWarning, "nnz must be smaller"):
             weights = simulation.weights_sparse_exp(n_weigths=3, nnz=5)
 

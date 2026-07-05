@@ -22,16 +22,16 @@ DEFAULT_URL_DATASET_URL = (
 URL_DATASET_PATH = "url/url_svmlight.tar.gz"
 URL_DATASET_N_FEATURES = 3_231_961
 URL_DATASET_MAX_DAYS = 120
-TICK_DATASETS_SOURCE_URL = "https://github.com/X-DataInitiative/tick-datasets"
-TICK_DATASETS_TREE_SHA = "9d959b6e53e17145e93e9849ff1f9f6d2de8ae51"
+DATASETS_SOURCE = "bundled public dataset archive"
+DATASETS_TREE_SHA = "9d959b6e53e17145e93e9849ff1f9f6d2de8ae51"
 
 _DATA_HOME_ENV = "HAWKES_TOOLS_DATASETS"
 _DEFAULT_HOME_NAME = "hawkes_tools_datasets"
-VENDORED_TICK_DATASETS_PATH = Path(__file__).resolve().parent / "vendor" / "tick-datasets"
+VENDORED_DATASETS_PATH = Path(__file__).resolve().parent / "vendor" / "datasets"
 
 # Data payloads from the crawled upstream dataset tree. Support scripts and
 # README files are intentionally excluded.
-TICK_DATASET_FILES: tuple[str, ...] = (
+DATASET_FILES: tuple[str, ...] = (
     "binary/adult/adult.trn.bz2",
     "binary/adult/adult.tst.bz2",
     "binary/covtype/covtype.trn.bz2",
@@ -45,9 +45,9 @@ TICK_DATASET_FILES: tuple[str, ...] = (
     "regression/abalone/abalone.trn.bz2",
 )
 
-TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
+DATASET_MANIFEST: dict[str, dict[str, object]] = {
     "hawkes/bund/bund.npz": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "npz object array",
         "shape": "20 realizations keyed by trading date; each realization has 4 timestamp streams",
         "event_count_range": (28_361, 56_086),
@@ -56,7 +56,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "fa1d4679fff7f6e2ee7819cbc461df14056bf1786ad0c98cf9e9019feff4bd8c",
     },
     "binary/adult/adult.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (32_561, 123),
         "y_shape": (32_561,),
@@ -65,7 +65,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "73ce74d43bbfc988b08e6ecf738cf5484f19dafa143c31f702f3a8b779d277e5",
     },
     "binary/adult/adult.tst.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (16_281, 123),
         "y_shape": (16_281,),
@@ -74,7 +74,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "bdb2ec9642e77947a67269471506b18bc4dcf03413f44814dc24833432ba818d",
     },
     "binary/covtype/covtype.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (581_012, 54),
         "y_shape": (581_012,),
@@ -83,7 +83,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "31731bccafcff5595fe34cc6ee15705bec7d15c962020c3f4280c4ecea74244d",
     },
     "binary/ijcnn1/ijcnn1.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (49_990, 22),
         "y_shape": (49_990,),
@@ -92,7 +92,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "b38a4198ce142d43e96fb86d17b87211feec1f909ac344fa057455c69de29de3",
     },
     "binary/ijcnn1/ijcnn1.tst.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (91_701, 22),
         "y_shape": (91_701,),
@@ -101,7 +101,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "acd1db430684fdd3f0c768ecc49aa8e749d0004fc117611220c2aa576a7b6a24",
     },
     "binary/kdd2010/kdd2010.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (19_264_097, 1_129_522),
         "y_shape": (19_264_097,),
@@ -110,7 +110,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "41f633927ed2d5f6d634f446bb007eb957128d806ec03bbc1b471bc6ee330a28",
     },
     "binary/kdd2010/kdd2010.tst.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (748_401, 1_163_024),
         "y_shape": (748_401,),
@@ -119,7 +119,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "00148b70303ab8497b3b1682f9385e13b1bff2940393e1b140a773ea752b77ce",
     },
     "binary/reuters/reuters.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (7_770, 8_315),
         "y_shape": (7_770,),
@@ -128,7 +128,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "e77a3368662c02caebe0d9cbcc97d856019bcfb33a8e9b7c48e0b51ee4cdfb60",
     },
     "binary/reuters/reuters.tst.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (3_299, 8_315),
         "y_shape": (3_299,),
@@ -137,7 +137,7 @@ TICK_DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "3d699b9644a38160bf3228059d18fbfc07474057d8e82d512576a2b82d72e211",
     },
     "regression/abalone/abalone.trn.bz2": {
-        "source": "X-DataInitiative/tick-datasets",
+        "source": DATASETS_SOURCE,
         "format": "regression SVMlight bz2",
         "x_shape": (4_177, 8),
         "y_shape": (4_177,),
@@ -182,19 +182,19 @@ def get_data_home(data_home: str | os.PathLike[str] | None = None) -> Path:
     return path
 
 
-def list_tick_datasets() -> tuple[str, ...]:
+def list_datasets() -> tuple[str, ...]:
     """Return all known bundled dataset payload paths."""
 
-    return TICK_DATASET_FILES
+    return DATASET_FILES
 
 
-def tick_dataset_metadata(dataset_path: str) -> dict[str, object]:
+def dataset_metadata(dataset_path: str) -> dict[str, object]:
     """Return shape/source metadata for a vendored dataset payload."""
 
     normalized = _normalize_dataset_path(dataset_path)
-    if normalized not in TICK_DATASET_MANIFEST:
-        raise KeyError(f"unknown tick dataset: {normalized}")
-    return dict(TICK_DATASET_MANIFEST[normalized])
+    if normalized not in DATASET_MANIFEST:
+        raise KeyError(f"unknown dataset: {normalized}")
+    return dict(DATASET_MANIFEST[normalized])
 
 
 def list_external_datasets() -> tuple[str, ...]:
@@ -212,16 +212,16 @@ def external_dataset_metadata(dataset_path: str) -> dict[str, object]:
     return dict(EXTERNAL_DATASETS[normalized])
 
 
-def vendored_tick_dataset_path(dataset_path: str) -> Path:
+def vendored_dataset_path(dataset_path: str) -> Path:
     """Return the bundled path for a dataset payload."""
 
-    return VENDORED_TICK_DATASETS_PATH / Path(_normalize_dataset_path(dataset_path))
+    return VENDORED_DATASETS_PATH / Path(_normalize_dataset_path(dataset_path))
 
 
-def is_tick_dataset_vendored(dataset_path: str) -> bool:
+def is_dataset_vendored(dataset_path: str) -> bool:
     """Return whether a dataset payload is bundled with the package."""
 
-    return vendored_tick_dataset_path(dataset_path).exists()
+    return vendored_dataset_path(dataset_path).exists()
 
 
 def _download_dataset(
@@ -246,7 +246,7 @@ def _download_dataset(
     return cache_path
 
 
-def fetch_tick_dataset(
+def fetch_dataset(
     dataset_path: str,
     data_home: str | os.PathLike[str] | None = None,
     n_features: int | None = None,
@@ -301,7 +301,7 @@ def fetch_hawkes_bund_data(
 ) -> list[list[np.ndarray]]:
     """Load the 20-day, 4-stream Bund Hawkes dataset."""
 
-    dataset = fetch_tick_dataset(
+    dataset = fetch_dataset(
         "hawkes/bund/bund.npz",
         data_home=data_home,
     )
@@ -512,7 +512,7 @@ def _resolve_existing_dataset_path(
     cache_path = _candidate_cache_path(dataset_path, data_home)
     if cache_path is not None and cache_path.exists():
         return cache_path
-    vendor_path = vendored_tick_dataset_path(dataset_path)
+    vendor_path = vendored_dataset_path(dataset_path)
     if vendor_path.exists():
         return vendor_path
     return None

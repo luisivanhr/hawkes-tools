@@ -154,7 +154,7 @@ class _LearnerBase(BaseEstimator):
         return qq_plots(residuals=residuals, **kwargs)
 
 
-def _format_tick_number(value):
+def _format_number(value):
     if value is None:
         return "None"
     value = float(value)
@@ -168,7 +168,7 @@ def _looks_like_timestamp_sequence_for_adm4(value):
 
 
 class _ParametricHawkesLearner(_LearnerBase):
-    _tick_solvers = ("agd", "bfgs", "gd", "sgd", "svrg")
+    _solver_names = ("agd", "bfgs", "gd", "sgd", "svrg")
     _allowed_solvers = {"gd", "agd", "bfgs", "svrg", "sgd", "lbfgs", "lbfgsb", "l-bfgs", "l-bfgs-b"}
     _solver_aliases = {"lbfgs": "bfgs", "lbfgsb": "bfgs", "l-bfgs": "bfgs", "l-bfgs-b": "bfgs"}
     _solver_classes = {"gd": GD, "agd": AGD, "bfgs": BFGS, "sgd": SGD, "svrg": SVRG}
@@ -214,11 +214,11 @@ class _ParametricHawkesLearner(_LearnerBase):
             )
         if solver not in self._allowed_solvers:
             raise ValueError(
-                f"``solver`` must be one of {', '.join(self._tick_solvers)}, got {solver}"
+                f"``solver`` must be one of {', '.join(self._solver_names)}, got {solver}"
             )
         solver = self._solver_aliases.get(solver, solver)
         if C is None or C <= 0:
-            raise ValueError(f"``C`` must be positive, got {_format_tick_number(C)}")
+            raise ValueError(f"``C`` must be positive, got {_format_number(C)}")
         if not 0.0 <= elastic_net_ratio <= 1.0:
             raise ValueError("elastic_net_ratio must be between 0 and 1")
         self._penalty = penalty
@@ -260,7 +260,7 @@ class _ParametricHawkesLearner(_LearnerBase):
     @C.setter
     def C(self, value):
         if value is None or value <= 0:
-            raise ValueError(f"``C`` must be positive, got {_format_tick_number(value)}")
+            raise ValueError(f"``C`` must be positive, got {_format_number(value)}")
         if self.penalty == "none":
             warnings.warn(
                 f'You cannot set C for penalty "{self.penalty}"',
@@ -388,7 +388,7 @@ class _ParametricHawkesLearner(_LearnerBase):
             self._random_state = None
             return
         if value is not None and value < 0:
-            raise ValueError(f"random_state must be positive, got {_format_tick_number(value)}")
+            raise ValueError(f"random_state must be positive, got {_format_number(value)}")
         self._random_state = None if value is None else int(value)
 
     def _fit_model(self, model, events, end_times=None, start=None):
@@ -4445,8 +4445,8 @@ class HawkesConditionalLaw(_LearnerBase):
     def _estimate_empirical_kernels(self):
         if len(self.data) == 0:
             raise ValueError("no non-empty realizations have been added")
-        self._compute_tick_conditional_laws()
-        self._set_tick_quadrature()
+        self._compute_conditional_laws()
+        self._set_quadrature()
         self._compute_ints_claw()
         index_first = 0
         self._phi_ijl = []
@@ -4470,7 +4470,7 @@ class HawkesConditionalLaw(_LearnerBase):
         self._estimate_baseline()
         self._estimate_mark_functions()
 
-    def _compute_tick_conditional_laws(self):
+    def _compute_conditional_laws(self):
         if len(self._packed_realizations) != len(self.data):
             self._packed_realizations = [
                 _conditional_law_pack_realization(realization, marks)
@@ -4546,7 +4546,7 @@ class HawkesConditionalLaw(_LearnerBase):
                 self._mark_max[i] = 1.0
 
         self._claw1 = self._aggregate_unmarked_claws()
-        self._apply_tick_symmetries()
+        self._apply_conditional_law_symmetries()
 
     @staticmethod
     def _point_process_cond_law(y_time, z_time, z_mark, lags, zmin, zmax, y_T, y_lambda):
@@ -4572,7 +4572,7 @@ class HawkesConditionalLaw(_LearnerBase):
             claw1.append(row)
         return claw1
 
-    def _apply_tick_symmetries(self):
+    def _apply_conditional_law_symmetries(self):
         for i, j in self.symmetries1d:
             value = (self.mean_intensity[i] + self.mean_intensity[j]) / 2.0
             self.mean_intensity[i] = value
@@ -4606,7 +4606,7 @@ class HawkesConditionalLaw(_LearnerBase):
                 self._claw[index1] = value
                 self._claw[index2] = value
 
-    def _set_tick_quadrature(self):
+    def _set_quadrature(self):
         if self.quad_method in {"gauss", "gauss-"}:
             self._quad_x, self._quad_w = leggauss(self.n_quad)
             self._quad_x = self.max_support * (self._quad_x + 1.0) / 2.0

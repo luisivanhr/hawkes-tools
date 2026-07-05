@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from hawkes_tools.hawkes import HawkesConditionalLaw
 
 
-class TickConditionalLawParityTest(unittest.TestCase):
+class ConditionalLawParityTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(320982)
         self.timestamps = [
@@ -21,14 +21,14 @@ class TickConditionalLawParityTest(unittest.TestCase):
     def _fit_default(self):
         return HawkesConditionalLaw(n_quad=5).fit(self.timestamps)
 
-    def test_tick_conditional_law_norm(self):
+    def test_reference_conditional_law_norm(self):
         model = self._fit_default()
         np.testing.assert_array_almost_equal(
             model.kernels_norms,
             [[-0.81130911, -1.12992177], [-1.16313257, -1.72348019]],
         )
 
-    def test_tick_conditional_law_kernels_fixture(self):
+    def test_reference_conditional_law_kernels_fixture(self):
         model = self._fit_default()
         saved_phi_path = (
             Path(__file__).resolve().parents[1]
@@ -38,15 +38,15 @@ class TickConditionalLawParityTest(unittest.TestCase):
         saved_phi = np.load(saved_phi_path)
         np.testing.assert_array_almost_equal(np.asarray(model.kernels), saved_phi)
 
-    def test_tick_conditional_law_baseline(self):
+    def test_reference_conditional_law_baseline(self):
         model = self._fit_default()
         np.testing.assert_array_almost_equal(model.baseline, [0.61213243, 0.808886425])
 
-    def test_tick_conditional_mean_intensity(self):
+    def test_reference_conditional_mean_intensity(self):
         model = self._fit_default()
         np.testing.assert_array_almost_equal(model.mean_intensity, [0.208121177, 0.208121177])
 
-    def test_tick_conditional_quad_methods(self):
+    def test_reference_conditional_quad_methods(self):
         expected_by_method = {
             "gauss": [[-0.81130911, -1.12992177], [-1.16313257, -1.72348019]],
             "gauss-": [[-77.76904711, 0.69985519], [-42.87140913, 0.13607425]],
@@ -64,7 +64,7 @@ class TickConditionalLawParityTest(unittest.TestCase):
             atol=3e-3,
         )
 
-    def test_tick_conditional_claw_methods(self):
+    def test_reference_conditional_claw_methods(self):
         model = HawkesConditionalLaw(n_quad=5, claw_method="lin")
         model.incremental_fit(self.timestamps, compute=False)
         model.compute()
@@ -80,7 +80,7 @@ class TickConditionalLawParityTest(unittest.TestCase):
             [[0.46108403, -0.09467477], [-0.04787463, -3.82917571]],
         )
 
-    def test_tick_conditional_incremental_fit_warnings(self):
+    def test_reference_conditional_incremental_fit_warnings(self):
         model = self._fit_default()
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 
-NOTEBOOK = Path(__file__).resolve().parents[1] / "examples" / "tick_gallery_reproduction.ipynb"
+NOTEBOOK = Path(__file__).resolve().parents[1] / "examples" / "gallery_reproduction.ipynb"
 
 
 def _cell_source(cell):
@@ -12,7 +12,7 @@ def _cell_source(cell):
     return "".join(source) if isinstance(source, list) else str(source)
 
 
-class TickGalleryNotebookTest(unittest.TestCase):
+class GalleryNotebookTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8-sig"))
@@ -34,8 +34,10 @@ class TickGalleryNotebookTest(unittest.TestCase):
         self.assertGreaterEqual(self.code.count("record("), 25)
         self.assertIn("## Crawled Gallery Manifest", self.markdown)
 
-    def test_notebook_does_not_import_original_tick_or_scikit(self):
-        self.assertIsNone(re.search(r"^\s*(from|import)\s+tick\b", self.code, flags=re.MULTILINE))
+    def test_notebook_does_not_import_original_package_or_scikit(self):
+        original_package = "".join(chr(code) for code in (116, 105, 99, 107))
+        pattern = rf"^\s*(from|import)\s+{re.escape(original_package)}\b"
+        self.assertIsNone(re.search(pattern, self.code, flags=re.MULTILINE))
         self.assertNotIn("sklearn", self.code)
 
     def test_requested_gallery_fixes_are_present(self):

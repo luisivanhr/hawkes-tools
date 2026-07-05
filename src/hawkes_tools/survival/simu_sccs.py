@@ -270,7 +270,7 @@ class SimuSCCS:
             outcomes.append(rng.multinomial(1, probabilities).astype(np.int32))
         return outcomes
 
-    def _simulate_poisson_outcomes(self, lagged_features, coeffs, rng, first_tick_only=True):
+    def _simulate_poisson_outcomes(self, lagged_features, coeffs, rng, first_event_only=True):
         baseline = np.zeros(self.n_intervals)
         if self.time_drift is not None:
             baseline = np.asarray(self.time_drift(np.arange(self.n_intervals)), dtype=float)
@@ -278,14 +278,14 @@ class SimuSCCS:
         for feat in lagged_features:
             dot_product = baseline + np.asarray(feat @ coeffs, dtype=float).reshape(-1)
             dot_product = dot_product - np.max(dot_product)
-            ticks = rng.poisson(np.exp(dot_product))
-            if first_tick_only:
-                y = np.zeros_like(ticks, dtype=np.int32)
-                positive = np.flatnonzero(ticks > 0)
+            event_counts = rng.poisson(np.exp(dot_product))
+            if first_event_only:
+                y = np.zeros_like(event_counts, dtype=np.int32)
+                positive = np.flatnonzero(event_counts > 0)
                 if positive.size:
                     y[int(positive[0])] = 1
             else:
-                y = ticks.astype(np.int32)
+                y = event_counts.astype(np.int32)
             outcomes.append(y)
         return outcomes
 

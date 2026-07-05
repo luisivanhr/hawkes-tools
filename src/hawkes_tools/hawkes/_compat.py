@@ -41,7 +41,7 @@ def _single_name(fullname: str, name: str, value: object) -> None:
     _alias_module(fullname, {name: value})
 
 
-def register_tick_deep_import_aliases() -> None:
+def register_deep_import_aliases() -> None:
     """Expose Hawkes deep modules without duplicating implementation files."""
 
     package = __name__.rsplit(".", 1)[0]

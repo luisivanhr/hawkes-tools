@@ -43,14 +43,14 @@ def finite_difference_grad(model, coeffs, eps=1e-6):
 
 
 class MetricsAndRobustTest(unittest.TestCase):
-    def test_support_metrics_match_tick_definitions(self):
+    def test_support_metrics_match_reference_definitions(self):
         truth = np.array([1.0, 0.0, 2.0, 0.0])
         found = np.array([0.5, 1.0, 0.0, 0.0])
 
         self.assertEqual(support_fdp(truth, found), 0.5)
         self.assertEqual(support_recall(truth, found), 0.5)
 
-    def test_robust_scale_estimators_match_tick_formulas(self):
+    def test_robust_scale_estimators_match_reference_formulas(self):
         x = np.array([-2.0, -1.0, 0.0, 1.0, 12.0])
 
         self.assertGreater(std_mad(x), 0.0)
@@ -101,7 +101,7 @@ class MetricsAndRobustTest(unittest.TestCase):
 
 
 class SurvivalTest(unittest.TestCase):
-    def test_hazard_rate_matches_survival_function_tick_reference(self):
+    def test_hazard_rate_matches_survival_function_reference(self):
         np.random.seed(238924)
         n_observations = 100
         timestamps = np.random.uniform(size=n_observations)
@@ -251,7 +251,7 @@ class SurvivalTest(unittest.TestCase):
         self.assertAlmostEqual(model.loss(coeffs), sparse_model.loss(coeffs))
         np.testing.assert_allclose(model.grad(coeffs), sparse_model.grad(coeffs))
 
-    def test_model_sccs_lipschitz_matches_tick_reference_case(self):
+    def test_model_sccs_lipschitz_matches_reference_case(self):
         X = [
             np.array([[0, 0, 1], [0, 1, 1], [1, 1, 1]], dtype="float64"),
             np.array([[0, 1, 1], [0, 1, 1], [1, 1, 1]], dtype="float64"),
@@ -279,7 +279,7 @@ class SurvivalTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "censoring_scale"):
             SimuSCCS(5, 4, 2, np.array([0, 0]), censoring_scale=0, verbose=False)
 
-    def test_simu_coxreg_with_cut_points_outputs_tick_tuple_semantics(self):
+    def test_simu_coxreg_with_cut_points_outputs_reference_tuple_semantics(self):
         sim = SimuCoxRegWithCutPoints(
             n_samples=40,
             n_features=3,

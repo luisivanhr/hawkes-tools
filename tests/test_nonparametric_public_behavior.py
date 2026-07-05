@@ -10,12 +10,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hawkes_tools.hawkes import HawkesBasisKernels, HawkesEM, HawkesSumGaussians
 
 
-class TickNonParametricLearnerBehaviorTest(unittest.TestCase):
+class NonParametricLearnerPublicBehaviorTest(unittest.TestCase):
     def setUp(self):
         self.events = [np.array([0.2, 0.8, 1.7]), np.array([0.5, 1.2])]
         self.end_time = 2.0
 
-    def test_em_kernel_discretization_setters_match_tick_style_grid_updates(self):
+    def test_em_kernel_discretization_setters_match_reference_style_grid_updates(self):
         learner = HawkesEM(kernel_support=4.4)
         self.assertEqual(learner.kernel_size, 10)
         self.assertEqual(learner.kernel_support, 4.4)

@@ -106,8 +106,8 @@ def hawkes_least_square_error(intensities, timestamps, end_time, precision=4):
     return squared_intensity_integral - 2 * intensity_convolution
 
 
-class TickKernelCompatibilityTest(unittest.TestCase):
-    def test_exp_kernel_tick_strings_and_plot_support(self):
+class KernelReferenceBehaviorTest(unittest.TestCase):
+    def test_exp_kernel_reference_strings_and_plot_support(self):
         kernel = HawkesKernelExp(3, 2)
         self.assertEqual(str(kernel), "3 * 2 * exp(- 2 * t)")
         self.assertEqual(str([kernel]), "[3*2*exp(-2*t)]")
@@ -119,7 +119,7 @@ class TickKernelCompatibilityTest(unittest.TestCase):
         self.assertEqual(HawkesKernelExp(0.5, 2).__strtex__(), "$e^{-2 t}$")
         self.assertEqual(HawkesKernelExp(1, 1).__strtex__(), "$e^{-t}$")
 
-    def test_sumexp_and_powerlaw_tick_strings(self):
+    def test_sumexp_and_powerlaw_reference_strings(self):
         decays = np.array([1.0, 2.0, 0.2])
         intensities = np.array([0.3, 4.0, 2.0])
         kernel = HawkesKernelSumExp(intensities, decays)
@@ -139,7 +139,7 @@ class TickKernelCompatibilityTest(unittest.TestCase):
         )
 
 
-class TickSimulationCompatibilityTest(unittest.TestCase):
+class SimulationReferenceBehaviorTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(23982)
         self.n_nodes = 3
@@ -203,7 +203,7 @@ class TickSimulationCompatibilityTest(unittest.TestCase):
             np.testing.assert_allclose(compensators, expected, rtol=1e-12, atol=1e-12)
 
 
-class TickModelCompatibilityTest(unittest.TestCase):
+class ModelReferenceBehaviorTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(30732)
         self.n_nodes = 3
@@ -268,7 +268,7 @@ class TickModelCompatibilityTest(unittest.TestCase):
         self.assertAlmostEqual(model.loss(coeffs), expected_loss, places=4)
         self.assertLess(check_grad(model.loss, model.grad, coeffs), 1e-5)
 
-    def test_exp_least_squares_loss_grad_and_expected_tick_values(self):
+    def test_exp_least_squares_loss_grad_and_expected_reference_values(self):
         timestamps = [
             np.array([0.2, 0.3, 0.65, 0.87, 1.0, 10.0, 12.0, 22.0]),
             np.array([3.0, 40.0, 60.0]),
@@ -317,7 +317,7 @@ class TickModelCompatibilityTest(unittest.TestCase):
         self.assertLess(check_grad(sum_model.loss, sum_model.grad, sum_coeffs), 1e-5)
 
 
-class TickConditionalLawCompatibilityTest(unittest.TestCase):
+class ConditionalLawReferenceBehaviorTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(320982)
         self.timestamps = [

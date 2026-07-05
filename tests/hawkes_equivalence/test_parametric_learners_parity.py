@@ -178,7 +178,7 @@ class HawkesExpKernParityTest(ParametricLearnerParityMixin, unittest.TestCase):
     def make_learner(self, **kwargs):
         return HawkesExpKern(self.decays, **kwargs)
 
-    def test_fit_start_matches_tick_start_contract(self):
+    def test_fit_start_matches_reference_start_contract(self):
         n_nodes = len(self.events)
         n_coeffs = n_nodes + n_nodes * n_nodes
         learner = HawkesExpKern(self.decays, max_iter=-1)
@@ -192,7 +192,7 @@ class HawkesExpKernParityTest(ParametricLearnerParityMixin, unittest.TestCase):
         learner.fit(self.events, start=random_coeffs)
         np.testing.assert_array_equal(learner.coeffs, random_coeffs)
 
-    def test_score_matches_tick_seeded_reference(self):
+    def test_score_matches_seeded_reference(self):
         n_nodes = 2
         n_realizations = 3
         train_events = [
@@ -291,7 +291,7 @@ class HawkesSumExpKernParityTest(ParametricLearnerParityMixin, unittest.TestCase
     def make_learner(self, **kwargs):
         return HawkesSumExpKern(self.decays, **kwargs)
 
-    def test_fit_start_matches_tick_start_contract(self):
+    def test_fit_start_matches_reference_start_contract(self):
         n_nodes = len(self.events)
         n_coeffs = n_nodes + n_nodes * n_nodes * self.n_decays
         learner = HawkesSumExpKern(self.decays, max_iter=-1)
@@ -305,7 +305,7 @@ class HawkesSumExpKernParityTest(ParametricLearnerParityMixin, unittest.TestCase
         learner.fit(self.events, start=random_coeffs)
         np.testing.assert_array_equal(learner.coeffs, random_coeffs)
 
-    def test_score_matches_tick_seeded_reference(self):
+    def test_score_matches_seeded_reference(self):
         n_nodes = 2
         n_realizations = 3
         train_events = [

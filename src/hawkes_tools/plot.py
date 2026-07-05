@@ -230,7 +230,7 @@ def _as_axes(ax, shape, plt, figsize=None, sharex=False, sharey=False):
 
 def _node_names(n_nodes, plot_nodes, node_names):
     if node_names is None:
-        return [f"ticks #{node}" for node in plot_nodes]
+        return [f"events #{node}" for node in plot_nodes]
     if len(node_names) != len(plot_nodes):
         raise ValueError(f"node_names must have length {len(plot_nodes)}, got {len(node_names)}")
     return list(node_names)

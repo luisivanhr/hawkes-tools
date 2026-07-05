@@ -36,9 +36,9 @@ from .simulation import (
     SimuInhomogeneousPoisson,
     SimuPoissonProcess,
 )
-from ._compat import register_tick_deep_import_aliases
+from ._compat import register_deep_import_aliases
 
-register_tick_deep_import_aliases()
+register_deep_import_aliases()
 
 __all__ = [
     "TimeFunction",

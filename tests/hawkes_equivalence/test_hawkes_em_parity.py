@@ -114,7 +114,7 @@ def simulate_small_nonparam_hawkes():
     return hawkes
 
 
-class TickHawkesEMParityTest(unittest.TestCase):
+class HawkesEMParityTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(123269)
         self.n_nodes = 3

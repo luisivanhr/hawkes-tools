@@ -26,7 +26,7 @@ class QuadraticModel:
 
 
 class SolverPublicTest(unittest.TestCase):
-    def test_public_solver_exports_cover_tick_top_level_names(self):
+    def test_public_solver_exports_cover_reference_top_level_names(self):
         expected = {
             "GD",
             "AGD",
@@ -73,7 +73,7 @@ class SolverPublicTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rand_type"):
             SGD(rand_type="stuff")
 
-    def test_negative_tick_style_seed_means_unseeded(self):
+    def test_negative_reference_style_seed_means_unseeded(self):
         solver = SVRG(seed=-123, random_state=-1)
 
         self.assertIsNone(solver.seed)

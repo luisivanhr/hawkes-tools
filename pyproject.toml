@@ -28,14 +28,14 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "hawkes_tools.datasets" = [
-  "vendor/tick-datasets/README.md",
-  "vendor/tick-datasets/binary/adult/*.bz2",
-  "vendor/tick-datasets/binary/covtype/*.bz2",
-  "vendor/tick-datasets/binary/ijcnn1/*.bz2",
-  "vendor/tick-datasets/binary/kdd2010/*.bz2",
-  "vendor/tick-datasets/binary/reuters/*.bz2",
-  "vendor/tick-datasets/hawkes/bund/*.npz",
-  "vendor/tick-datasets/regression/abalone/*.bz2",
+  "vendor/datasets/README.md",
+  "vendor/datasets/binary/adult/*.bz2",
+  "vendor/datasets/binary/covtype/*.bz2",
+  "vendor/datasets/binary/ijcnn1/*.bz2",
+  "vendor/datasets/binary/kdd2010/*.bz2",
+  "vendor/datasets/binary/reuters/*.bz2",
+  "vendor/datasets/hawkes/bund/*.npz",
+  "vendor/datasets/regression/abalone/*.bz2",
 ]
 
 [tool.pytest.ini_options]

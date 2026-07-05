@@ -43,7 +43,7 @@ class LinearModelPublicSurfaceTest(unittest.TestCase):
         }
         self.assertEqual(set(), expected - set(linear_model.__all__))
 
-    def test_fit_intercept_uses_tick_weights_first_layout(self):
+    def test_fit_intercept_uses_reference_weights_first_layout(self):
         X = np.array([[1.0, 2.0], [0.5, -1.0], [-0.25, 0.75]])
         y = X @ np.array([0.4, -0.2]) + 0.7
         model = ModelLinReg(fit_intercept=True).fit(X, y)
@@ -120,7 +120,7 @@ class LinearModelPublicSurfaceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlap"):
             PoissonRegression(penalty="binarsity", blocks_start=[0, 1], blocks_length=[2, 2])
 
-    def test_learner_penalty_surface_matches_tick_prox_mapping(self):
+    def test_learner_penalty_surface_matches_reference_prox_mapping(self):
         X = np.array(
             [
                 [1.0, 0.0, -0.5],

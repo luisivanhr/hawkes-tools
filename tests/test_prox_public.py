@@ -41,7 +41,7 @@ class ProxPublicBehaviorTest(unittest.TestCase):
             dtype=float,
         )
 
-    def test_public_exports_cover_tick_prox_names(self):
+    def test_public_exports_cover_reference_prox_names(self):
         import hawkes_tools.prox as prox
 
         expected = {

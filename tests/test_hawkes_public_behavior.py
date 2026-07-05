@@ -33,7 +33,7 @@ from hawkes_tools.hawkes import (
 from hawkes_tools.hawkes.models import _sumexp_intensity_from_coeffs
 
 
-class TickTimeFunctionCompatibilityTest(unittest.TestCase):
+class TimeFunctionReferenceBehaviorTest(unittest.TestCase):
     def test_time_function_constants_interpolation_and_borders(self):
         constant = TimeFunction(2.5)
         self.assertEqual(constant.value(-1.0), 0.0)
@@ -64,7 +64,7 @@ class TickTimeFunctionCompatibilityTest(unittest.TestCase):
         self.assertAlmostEqual(cyclic.value(2.5), linear.value(0.5))
 
 
-class TickPointProcessCompatibilityTest(unittest.TestCase):
+class PointProcessReferenceBehaviorTest(unittest.TestCase):
     def test_poisson_max_jumps_and_intensity_tracking_toggle(self):
         process = SimuPoissonProcess([1.0, 3.0, 2.2], end_time=None, max_jumps=25, seed=123, verbose=False)
         self.assertEqual(process.simulation_time, 0.0)
@@ -96,7 +96,7 @@ class TickPointProcessCompatibilityTest(unittest.TestCase):
         np.testing.assert_allclose(process.tracked_intensity[1], tf_2.value(times), atol=1e-12)
 
 
-class TickGenericHawkesCompatibilityTest(unittest.TestCase):
+class GenericHawkesReferenceBehaviorTest(unittest.TestCase):
     def setUp(self):
         t_values = np.linspace(0.0, 10.0, 10)
         y_values = np.maximum(0.5 + np.sin(t_values), 0.0)
@@ -190,7 +190,7 @@ class TickGenericHawkesCompatibilityTest(unittest.TestCase):
             np.testing.assert_allclose(actual[: expected.size], expected)
 
 
-class TickModelPublicBehaviorTest(unittest.TestCase):
+class ModelPublicBehaviorTest(unittest.TestCase):
     def test_sumexp_leastsq_parameter_validation_and_baseline_intervals(self):
         decays = np.array([1.0, 2.0])
         self.assertEqual(ModelHawkesSumExpKernLeastSq(decays).n_decays, 2)
@@ -295,7 +295,7 @@ class TickModelPublicBehaviorTest(unittest.TestCase):
             self.assertAlmostEqual(numeric, grad[index], places=4)
 
 
-class TickLearnerPublicBehaviorTest(unittest.TestCase):
+class LearnerPublicBehaviorTest(unittest.TestCase):
     def setUp(self):
         self.events = [np.array([0.2, 0.8, 1.7]), np.array([0.5, 1.2])]
         self.end_time = 2.0
@@ -358,7 +358,7 @@ class TickLearnerPublicBehaviorTest(unittest.TestCase):
         self.assertTrue(np.isfinite(em.objective(em.kernel)))
 
 
-class TickPlotPublicBehaviorTest(unittest.TestCase):
+class PlotPublicBehaviorTest(unittest.TestCase):
     def test_hawkes_and_point_process_plot_smoke_tests(self):
         import matplotlib
 
@@ -381,17 +381,17 @@ class TickPlotPublicBehaviorTest(unittest.TestCase):
             self.assertGreaterEqual(len(fig.axes), 1)
             plt.close(fig)
 
-    def test_missing_tick_plot_helpers(self):
+    def test_restored_plot_helpers(self):
         self.assertTrue(hasattr(hawkes_plot, "plot_hawkes_baseline_and_kernels"))
         self.assertTrue(hasattr(hawkes_plot, "plot_basis_kernels"))
         self.assertTrue(hasattr(hawkes_plot, "plot_timefunction"))
 
 
-class TickDocumentedGapCompatibilityTest(unittest.TestCase):
+class DocumentedGapCompatibilityTest(unittest.TestCase):
     def test_simu_hawkes_check_parameters_coherence_method(self):
         self.assertTrue(hasattr(SimuHawkes(n_nodes=1), "check_parameters_coherence"))
 
-    def test_deep_tick_hawkes_import_paths(self):
+    def test_deep_hawkes_import_paths(self):
         cases = [
             ("hawkes_tools.hawkes.simulation.base", "SimuPointProcess"),
             ("hawkes_tools.hawkes.simulation.base.simu_point_process", "SimuPointProcess"),
