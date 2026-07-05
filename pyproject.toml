@@ -32,7 +32,7 @@ where = ["src"]
   "vendor/datasets/binary/adult/*.bz2",
   "vendor/datasets/binary/covtype/*.bz2",
   "vendor/datasets/binary/ijcnn1/*.bz2",
-  "vendor/datasets/binary/kdd2010/*.bz2",
+  "vendor/datasets/binary/kdd2010/kdd2010.tst.bz2",
   "vendor/datasets/binary/reuters/*.bz2",
   "vendor/datasets/hawkes/bund/*.npz",
   "vendor/datasets/regression/abalone/*.bz2",

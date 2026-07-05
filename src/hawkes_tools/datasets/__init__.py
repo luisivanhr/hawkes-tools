@@ -23,11 +23,15 @@ URL_DATASET_PATH = "url/url_svmlight.tar.gz"
 URL_DATASET_N_FEATURES = 3_231_961
 URL_DATASET_MAX_DAYS = 120
 DATASETS_SOURCE = "bundled public dataset archive"
+LOCAL_EXTERNAL_DATASETS_SOURCE = "local external dataset cache"
 DATASETS_TREE_SHA = "9d959b6e53e17145e93e9849ff1f9f6d2de8ae51"
 
 _DATA_HOME_ENV = "HAWKES_TOOLS_DATASETS"
 _DEFAULT_HOME_NAME = "hawkes_tools_datasets"
 VENDORED_DATASETS_PATH = Path(__file__).resolve().parent / "vendor" / "datasets"
+LOCAL_EXTERNAL_DATASET_FILES: tuple[str, ...] = (
+    "binary/kdd2010/kdd2010.trn.bz2",
+)
 
 # Data payloads from the crawled upstream dataset tree. Support scripts and
 # README files are intentionally excluded.
@@ -43,6 +47,9 @@ DATASET_FILES: tuple[str, ...] = (
     "binary/reuters/reuters.tst.bz2",
     "hawkes/bund/bund.npz",
     "regression/abalone/abalone.trn.bz2",
+)
+VENDORED_DATASET_FILES: tuple[str, ...] = tuple(
+    dataset_path for dataset_path in DATASET_FILES if dataset_path not in LOCAL_EXTERNAL_DATASET_FILES
 )
 
 DATASET_MANIFEST: dict[str, dict[str, object]] = {
@@ -101,7 +108,7 @@ DATASET_MANIFEST: dict[str, dict[str, object]] = {
         "sha256": "acd1db430684fdd3f0c768ecc49aa8e749d0004fc117611220c2aa576a7b6a24",
     },
     "binary/kdd2010/kdd2010.trn.bz2": {
-        "source": DATASETS_SOURCE,
+        "source": LOCAL_EXTERNAL_DATASETS_SOURCE,
         "format": "binary SVMlight bz2",
         "x_shape": (19_264_097, 1_129_522),
         "y_shape": (19_264_097,),
@@ -148,6 +155,11 @@ DATASET_MANIFEST: dict[str, dict[str, object]] = {
 }
 
 EXTERNAL_DATASETS: dict[str, dict[str, object]] = {
+    "binary/kdd2010/kdd2010.trn.bz2": {
+        **DATASET_MANIFEST["binary/kdd2010/kdd2010.trn.bz2"],
+        "vendored": False,
+        "note": "Large local external payload; set HAWKES_TOOLS_DATASETS or pass data_home= to load it.",
+    },
     URL_DATASET_PATH: {
         "url": DEFAULT_URL_DATASET_URL,
         "source": "UCI Machine Learning Repository",
@@ -183,18 +195,20 @@ def get_data_home(data_home: str | os.PathLike[str] | None = None) -> Path:
 
 
 def list_datasets() -> tuple[str, ...]:
-    """Return all known bundled dataset payload paths."""
+    """Return all known dataset payload paths."""
 
     return DATASET_FILES
 
 
 def dataset_metadata(dataset_path: str) -> dict[str, object]:
-    """Return shape/source metadata for a vendored dataset payload."""
+    """Return shape/source metadata for a known dataset payload."""
 
     normalized = _normalize_dataset_path(dataset_path)
     if normalized not in DATASET_MANIFEST:
         raise KeyError(f"unknown dataset: {normalized}")
-    return dict(DATASET_MANIFEST[normalized])
+    metadata = dict(DATASET_MANIFEST[normalized])
+    metadata.setdefault("vendored", normalized in VENDORED_DATASET_FILES)
+    return metadata
 
 
 def list_external_datasets() -> tuple[str, ...]:
@@ -261,7 +275,7 @@ def fetch_dataset(
     normalized = _normalize_dataset_path(dataset_path)
     source_path = _resolve_existing_dataset_path(normalized, data_home)
     if source_path is None:
-        raise FileNotFoundError(f"dataset is neither cached nor vendored: {normalized}")
+        raise _missing_dataset_error(normalized)
     return _load_dataset_path(source_path, n_features=n_features)
 
 
@@ -274,9 +288,7 @@ def load_dataset(
 
     source_path = _resolve_existing_dataset_path(dataset_path, data_home)
     if source_path is None:
-        raise FileNotFoundError(
-            f"dataset is neither cached nor vendored: {_normalize_dataset_path(dataset_path)}"
-        )
+        raise _missing_dataset_error(_normalize_dataset_path(dataset_path))
     return _load_dataset_path(source_path, n_features=n_features)
 
 
@@ -516,4 +528,12 @@ def _resolve_existing_dataset_path(
     if vendor_path.exists():
         return vendor_path
     return None
+
+
+def _missing_dataset_error(normalized: str) -> FileNotFoundError:
+    if normalized in LOCAL_EXTERNAL_DATASET_FILES:
+        return FileNotFoundError(
+            f"dataset is not vendored and was not found in data_home or {_DATA_HOME_ENV}: {normalized}"
+        )
+    return FileNotFoundError(f"dataset is neither cached nor vendored: {normalized}")
 

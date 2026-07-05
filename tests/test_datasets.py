@@ -1,3 +1,4 @@
+import bz2
 import hashlib
 import os
 import sys
@@ -14,6 +15,7 @@ from hawkes_tools.datasets import (
     DATASET_MANIFEST,
     DATASETS_SOURCE,
     DATASETS_TREE_SHA,
+    LOCAL_EXTERNAL_DATASETS_SOURCE,
     URL_DATASET_N_FEATURES,
     URL_DATASET_PATH,
     dataset_metadata,
@@ -31,6 +33,8 @@ from hawkes_tools.datasets import (
 
 
 class DatasetLoaderTest(unittest.TestCase):
+    large_external_dataset_path = "binary/kdd2010/kdd2010.trn.bz2"
+
     def test_hawkes_bund_data_loads_from_vendored_payload(self):
         timestamps = fetch_hawkes_bund_data()
 
@@ -50,7 +54,7 @@ class DatasetLoaderTest(unittest.TestCase):
         self.assertEqual(abalone_x.shape, (4177, 8))
         self.assertEqual(abalone_y.shape, (4177,))
 
-    def test_dataset_manifest_entries_are_vendored(self):
+    def test_dataset_manifest_entries_are_available_or_external(self):
         manifest = list_datasets()
 
         self.assertEqual(DATASETS_TREE_SHA, "9d959b6e53e17145e93e9849ff1f9f6d2de8ae51")
@@ -59,16 +63,21 @@ class DatasetLoaderTest(unittest.TestCase):
         self.assertEqual(set(DATASET_MANIFEST), set(manifest))
         for dataset_path in manifest:
             with self.subTest(dataset_path=dataset_path):
-                self.assertTrue(is_dataset_vendored(dataset_path))
                 metadata = dataset_metadata(dataset_path)
-                self.assertEqual(metadata["source"], DATASETS_SOURCE)
                 self.assertIn("format", metadata)
                 self.assertTrue("shape" in metadata or "x_shape" in metadata)
                 self.assertIn("size_bytes", metadata)
                 self.assertIn("sha256", metadata)
-                payload_path = vendored_dataset_path(dataset_path)
-                self.assertEqual(payload_path.stat().st_size, metadata["size_bytes"])
-                self.assertEqual(_sha256_file(payload_path), metadata["sha256"])
+                self.assertEqual(metadata["vendored"], is_dataset_vendored(dataset_path))
+                if metadata["vendored"]:
+                    self.assertEqual(metadata["source"], DATASETS_SOURCE)
+                    payload_path = vendored_dataset_path(dataset_path)
+                    self.assertEqual(payload_path.stat().st_size, metadata["size_bytes"])
+                    self.assertEqual(_sha256_file(payload_path), metadata["sha256"])
+                else:
+                    self.assertEqual(dataset_path, self.large_external_dataset_path)
+                    self.assertEqual(metadata["source"], LOCAL_EXTERNAL_DATASETS_SOURCE)
+                    self.assertFalse(vendored_dataset_path(dataset_path).exists())
 
         adult_metadata = dataset_metadata("binary/adult/adult.trn.bz2")
         self.assertEqual(adult_metadata["x_shape"], adult_x_shape := (32_561, 123))
@@ -79,6 +88,7 @@ class DatasetLoaderTest(unittest.TestCase):
     def test_url_dataset_is_managed_external_not_bundled_payload(self):
         self.assertNotIn(URL_DATASET_PATH, list_datasets())
         self.assertIn(URL_DATASET_PATH, list_external_datasets())
+        self.assertIn(self.large_external_dataset_path, list_external_datasets())
 
         metadata = external_dataset_metadata(URL_DATASET_PATH)
         self.assertFalse(metadata["vendored"])
@@ -86,6 +96,28 @@ class DatasetLoaderTest(unittest.TestCase):
         self.assertEqual(metadata["max_days"], 120)
         self.assertIn("3_231_961", metadata["shape"])
         self.assertIn("archive.ics.uci.edu", metadata["url"])
+
+        large_metadata = external_dataset_metadata(self.large_external_dataset_path)
+        self.assertFalse(large_metadata["vendored"])
+        self.assertEqual(large_metadata["source"], LOCAL_EXTERNAL_DATASETS_SOURCE)
+        self.assertIn("data_home", large_metadata["note"])
+
+    def test_large_external_dataset_loads_from_explicit_data_home(self):
+        with tempfile.TemporaryDirectory() as data_home:
+            payload = Path(data_home) / self.large_external_dataset_path
+            payload.parent.mkdir(parents=True)
+            with bz2.open(payload, "wt", encoding="utf-8") as stream:
+                stream.write("1 1:0.5 3:1.0\n")
+                stream.write("-1 2:2.0\n")
+
+            x_data, y_data = fetch_dataset(
+                self.large_external_dataset_path,
+                data_home=data_home,
+                n_features=3,
+            )
+
+            self.assertEqual(x_data.shape, (2, 3))
+            np.testing.assert_array_equal(y_data, np.array([1.0, -1.0]))
 
     def test_url_dataset_rejects_invalid_day_requests_before_download(self):
         invalid_n_days = [0, -1, 121, True, 1.5, "2"]
