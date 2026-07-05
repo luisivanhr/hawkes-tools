@@ -22,11 +22,11 @@ helpers for hot loops, and Python parallelism for repeated simulations.
 Hawkes Bund, Adult, Covtype, IJCNN, KDD, Reuters, and Abalone payloads. It
 loads smaller payloads from package data or an explicit local `data_home`
 without depending on any external Hawkes package at runtime. The large KDD2010
-training payload is managed as a local external dataset to keep the repository
-and wheel small. The URL reputation tarball is represented separately as a
-managed external dataset because it is not part of the bundled package data.
-Set `HAWKES_TOOLS_DATASETS` or pass `data_home=` to control the local cache for
-managed external datasets.
+training payload is downloaded from the `dataset` GitHub release on first use
+to keep the repository and wheel small. The URL reputation tarball is
+represented separately as a managed external dataset because it is not part of
+the bundled package data. Set `HAWKES_TOOLS_DATASETS` or pass `data_home=` to
+control the local cache for managed external datasets.
 
 ```python
 from hawkes_tools.datasets import fetch_hawkes_bund_data
@@ -47,7 +47,7 @@ Dataset payload shapes:
 | `binary/covtype/covtype.trn.bz2` | Binary SVMlight: `X` CSR shape `(581_012, 54)`, `y` shape `(581_012,)`, 6,940,438 nonzeros. |
 | `binary/ijcnn1/ijcnn1.trn.bz2` | Binary SVMlight: `X` CSR shape `(49_990, 22)`, `y` shape `(49_990,)`, 649,870 nonzeros. |
 | `binary/ijcnn1/ijcnn1.tst.bz2` | Binary SVMlight: `X` CSR shape `(91_701, 22)`, `y` shape `(91_701,)`, 1,192,113 nonzeros. |
-| `binary/kdd2010/kdd2010.trn.bz2` | Local external binary SVMlight payload: `X` CSR shape `(19_264_097, 1_129_522)` when loaded standalone, `y` shape `(19_264_097,)`, 173,376,873 nonzeros. Place this file under `HAWKES_TOOLS_DATASETS` or pass `data_home=` to load it. |
+| `binary/kdd2010/kdd2010.trn.bz2` | Release-backed binary SVMlight payload: `X` CSR shape `(19_264_097, 1_129_522)` when loaded standalone, `y` shape `(19_264_097,)`, 173,376,873 nonzeros. `fetch_dataset` downloads and verifies it into `HAWKES_TOOLS_DATASETS` or `data_home=` on cache miss. |
 | `binary/kdd2010/kdd2010.tst.bz2` | Binary SVMlight: `X` CSR shape `(748_401, 1_163_024)` when loaded standalone, `y` shape `(748_401,)`, 6,735,609 nonzeros. |
 | `binary/reuters/reuters.trn.bz2` | Binary SVMlight: `X` CSR shape `(7_770, 8_315)`, `y` shape `(7_770,)`, 339,837 nonzeros. |
 | `binary/reuters/reuters.tst.bz2` | Binary SVMlight: `X` CSR shape `(3_299, 8_315)`, `y` shape `(3_299,)`, 136,821 nonzeros. |
@@ -57,7 +57,7 @@ Managed external dataset:
 
 | Dataset path | Loader output shape |
 | --- | --- |
-| `binary/kdd2010/kdd2010.trn.bz2` | Local external KDD2010 training payload. `fetch_dataset(..., data_home=...)` loads it from the cache root when present. |
+| `binary/kdd2010/kdd2010.trn.bz2` | Release-backed KDD2010 training payload. `fetch_dataset(..., data_home=...)` downloads it from `https://github.com/luisivanhr/hawkes-tools/releases/download/dataset/kdd2010.trn.bz2` on cache miss and verifies size plus SHA-256 before loading. |
 | `url/url_svmlight.tar.gz` | URL reputation tarball from UCI. `fetch_url_dataset(n_days=k)` loads Day0 through Day`k-1` for `1 <= k <= 120` as `X` CSR shape `(sum selected day rows, 3_231_961)` and `y` shape `(same row count,)`. |
 
 ## NumPy/Numba Runtime
@@ -136,8 +136,9 @@ Numba cache files (`.nbc` / `.nbi`) may be written near `__pycache__`.
 - Hawkes plotting helpers are available from `hawkes_tools.plot` and
   `hawkes_tools.hawkes.plot`.
 - Generic stem plots are available as `hawkes_tools.plot.stems`.
-- Vendored and externally cached dataset loaders are available from
-  `hawkes_tools.datasets`.
+- Vendored and release-backed dataset loaders are available from
+  `hawkes_tools.datasets`; use `download_dataset` to prepopulate a managed
+  external payload cache without loading it.
 
 This is a standalone production API. Intentional exclusions include exact
 compiled attribute semantics and compiled backend internals. TensorFlow is not
@@ -180,7 +181,7 @@ Use the requested environment:
 
 The current stabilization baseline is:
 
-- `unittest discover -s tests`: 255 tests run, OK, with no skips.
+- `unittest discover -s tests`: 257 tests run, OK, with no skips.
 - Equivalence ledger tests: 171 source-backed Hawkes cases from the frozen
   manifest; current classification is 171 pass, 0 unresolved equivalence gaps,
   and 0 optional backend cases.
@@ -196,7 +197,7 @@ The current stabilization baseline is:
   builds `hawkes_tools-0.1.0-py3-none-any.whl`; importing from that temp target
   loads `hawkes_tools`, excludes `our_hawkes`, and exposes 11 known dataset
   entries, with 10 payloads from installed package data and the KDD2010
-  training payload managed through the local external cache.
+  training payload managed through the release-backed external cache.
 - Public export check: every name listed in `hawkes_tools.hawkes.__all__` imports
   from the local source tree.
 

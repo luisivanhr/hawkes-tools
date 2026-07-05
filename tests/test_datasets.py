@@ -1,5 +1,6 @@
 import bz2
 import hashlib
+import io
 import os
 import sys
 import tempfile
@@ -11,14 +12,19 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+import hawkes_tools.datasets as datasets  # noqa: E402
 from hawkes_tools.datasets import (
     DATASET_MANIFEST,
     DATASETS_SOURCE,
     DATASETS_TREE_SHA,
     LOCAL_EXTERNAL_DATASETS_SOURCE,
+    DATASET_RELEASE_MANIFEST_URL,
+    KDD2010_TRAIN_DATASET_SHA256_URL,
+    KDD2010_TRAIN_DATASET_URL,
     URL_DATASET_N_FEATURES,
     URL_DATASET_PATH,
     dataset_metadata,
+    download_dataset,
     external_dataset_metadata,
     fetch_dataset,
     fetch_hawkes_bund_data,
@@ -26,6 +32,7 @@ from hawkes_tools.datasets import (
     is_dataset_vendored,
     list_external_datasets,
     list_datasets,
+    load_dataset,
     vendored_dataset_path,
     fetch_url_dataset,
     load_url_dataset_day,
@@ -100,6 +107,9 @@ class DatasetLoaderTest(unittest.TestCase):
         large_metadata = external_dataset_metadata(self.large_external_dataset_path)
         self.assertFalse(large_metadata["vendored"])
         self.assertEqual(large_metadata["source"], LOCAL_EXTERNAL_DATASETS_SOURCE)
+        self.assertEqual(large_metadata["url"], KDD2010_TRAIN_DATASET_URL)
+        self.assertEqual(large_metadata["checksum_url"], KDD2010_TRAIN_DATASET_SHA256_URL)
+        self.assertEqual(large_metadata["release_manifest_url"], DATASET_RELEASE_MANIFEST_URL)
         self.assertIn("data_home", large_metadata["note"])
 
     def test_large_external_dataset_loads_from_explicit_data_home(self):
@@ -110,7 +120,7 @@ class DatasetLoaderTest(unittest.TestCase):
                 stream.write("1 1:0.5 3:1.0\n")
                 stream.write("-1 2:2.0\n")
 
-            x_data, y_data = fetch_dataset(
+            x_data, y_data = load_dataset(
                 self.large_external_dataset_path,
                 data_home=data_home,
                 n_features=3,
@@ -118,6 +128,67 @@ class DatasetLoaderTest(unittest.TestCase):
 
             self.assertEqual(x_data.shape, (2, 3))
             np.testing.assert_array_equal(y_data, np.array([1.0, -1.0]))
+
+    def test_large_external_dataset_downloads_from_release_and_validates(self):
+        payload_bytes = bz2.compress(b"1 1:0.5 3:1.0\n-1 2:2.0\n")
+        payload_sha256 = hashlib.sha256(payload_bytes).hexdigest()
+        metadata = {
+            **datasets.EXTERNAL_DATASETS[self.large_external_dataset_path],
+            "url": "https://example.invalid/kdd2010.trn.bz2",
+            "size_bytes": len(payload_bytes),
+            "sha256": payload_sha256,
+        }
+
+        with tempfile.TemporaryDirectory() as data_home:
+            with patch.dict(datasets.EXTERNAL_DATASETS, {self.large_external_dataset_path: metadata}):
+                with patch("hawkes_tools.datasets.urlopen", return_value=_BytesResponse(payload_bytes)) as mocked:
+                    downloaded_path = download_dataset(
+                        self.large_external_dataset_path,
+                        data_home=data_home,
+                        verbose=False,
+                    )
+                    x_data, y_data = fetch_dataset(
+                        self.large_external_dataset_path,
+                        data_home=data_home,
+                        n_features=3,
+                        verbose=False,
+                    )
+
+                mocked.assert_called_once_with("https://example.invalid/kdd2010.trn.bz2", timeout=120)
+                self.assertEqual(downloaded_path, Path(data_home) / self.large_external_dataset_path)
+                self.assertEqual(_sha256_file(downloaded_path), payload_sha256)
+                self.assertEqual(x_data.shape, (2, 3))
+                np.testing.assert_array_equal(y_data, np.array([1.0, -1.0]))
+
+                with patch("hawkes_tools.datasets.urlopen", side_effect=AssertionError("cache miss")):
+                    x_cached, y_cached = fetch_dataset(
+                        self.large_external_dataset_path,
+                        data_home=data_home,
+                        n_features=3,
+                        verbose=False,
+                    )
+                self.assertEqual(x_cached.shape, (2, 3))
+                np.testing.assert_array_equal(y_cached, y_data)
+
+    def test_large_external_dataset_rejects_bad_release_checksum(self):
+        payload_bytes = bz2.compress(b"1 1:0.5\n")
+        metadata = {
+            **datasets.EXTERNAL_DATASETS[self.large_external_dataset_path],
+            "url": "https://example.invalid/kdd2010.trn.bz2",
+            "size_bytes": len(payload_bytes),
+            "sha256": "0" * 64,
+        }
+
+        with tempfile.TemporaryDirectory() as data_home:
+            with patch.dict(datasets.EXTERNAL_DATASETS, {self.large_external_dataset_path: metadata}):
+                with patch("hawkes_tools.datasets.urlopen", return_value=_BytesResponse(payload_bytes)):
+                    with self.assertRaisesRegex(ValueError, "SHA-256"):
+                        download_dataset(
+                            self.large_external_dataset_path,
+                            data_home=data_home,
+                            verbose=False,
+                        )
+            self.assertFalse((Path(data_home) / self.large_external_dataset_path).exists())
 
     def test_url_dataset_rejects_invalid_day_requests_before_download(self):
         invalid_n_days = [0, -1, 121, True, 1.5, "2"]
@@ -165,6 +236,15 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+class _BytesResponse(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        self.close()
+        return False
 
 
 if __name__ == "__main__":
