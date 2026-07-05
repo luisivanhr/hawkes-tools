@@ -1,7 +1,7 @@
 # hawkes-tools
 
-Standalone Python Hawkes and point-process tools inspired by the Hawkes-related
-parts of `tick`, without importing or depending on the original `tick` package.
+Standalone Python Hawkes and point-process tools for theoretical and practical research.
+Several tools provided here are excelent for data science applications.
 
 The package lives under `hawkes-tools/`, while the import package is
 `hawkes_tools`. The old migration namespace `our_hawkes` is not packaged.
