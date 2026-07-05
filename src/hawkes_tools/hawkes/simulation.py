@@ -1,0 +1,1416 @@
+"""Point-process and Hawkes simulation classes."""
+
+from __future__ import annotations
+
+import copy
+import math
+import multiprocessing
+import time
+import warnings
+from bisect import bisect_left, bisect_right
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from itertools import product
+from typing import Any
+
+import numpy as np
+
+from hawkes_tools.base import BaseEstimator, TimeFunction, now_string
+
+from .kernels import (
+    HawkesKernel,
+    HawkesKernel0,
+    HawkesKernelExp,
+    HawkesKernelPowerLaw,
+    HawkesKernelSumExp,
+    HawkesKernelTimeFunc,
+)
+from .numeric import (
+    exp_compensator_value,
+    exp_intensity_bound,
+    exp_intensity_vector,
+    exp_kernel_convolution,
+    homogeneous_poisson_events,
+    pack_realization,
+    simulate_exp_hawkes,
+    simulate_mixed_hawkes,
+    sumexp_compensator_value,
+    sumexp_intensity_bound,
+    sumexp_intensity_vector,
+    sumexp_kernel_convolution,
+    timefunc_kernel_convolution,
+    timefunc_kernel_future_bound_sum,
+)
+
+
+class Simu(BaseEstimator):
+    """Base simulation class."""
+
+    def __init__(self, seed: int | None = None, verbose: bool = True):
+        self._seed: int | None = None
+        self._rng = np.random.default_rng()
+        self.seed = seed
+        self.verbose = verbose
+        self.time_start: str | None = None
+        self.time_end: str | None = None
+        self.time_elapsed: float | None = None
+
+    @property
+    def seed(self) -> int | None:
+        return self._seed
+
+    @seed.setter
+    def seed(self, value: int | None) -> None:
+        self._seed = None if value is None else int(value)
+        rng_seed = None if self._seed is None or self._seed < 0 else self._seed
+        self._rng = np.random.default_rng(rng_seed)
+
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
+
+    def _start_simulation(self) -> None:
+        self.time_start = now_string()
+        self._time_start = time.time()
+        if self.verbose:
+            print(f"Launching simulation using {self.name}...")
+
+    def _end_simulation(self) -> None:
+        self.time_end = now_string()
+        self.time_elapsed = time.time() - self._time_start
+        if self.verbose:
+            print(f"Done simulating using {self.name} in {self.time_elapsed:.2e} seconds.")
+
+    def simulate(self):
+        self._start_simulation()
+        result = self._simulate()
+        self._end_simulation()
+        return result
+
+    def _simulate(self):
+        raise NotImplementedError
+
+
+class SimuPointProcess(Simu):
+    """Base class for point-process simulations."""
+
+    def __init__(
+        self,
+        end_time: float | None = None,
+        max_jumps: int | None = None,
+        seed: int | None = None,
+        verbose: bool = True,
+    ):
+        super().__init__(seed=seed, verbose=verbose)
+        self._time = 0.0
+        self._end_time: float | None = None
+        self.end_time = end_time
+        self.max_jumps = max_jumps
+        self._timestamps: list[list[float]] = []
+        self._intensity_track_step = -1.0
+        self._next_track_time = 0.0
+        self._tracked_times: list[float] = []
+        self._tracked_intensity: list[list[float]] = []
+        self._tracked_compensator: list[np.ndarray] = []
+        self._threshold_negative_intensity = False
+
+    @property
+    def end_time(self) -> float | None:
+        return self._end_time
+
+    @end_time.setter
+    def end_time(self, value: float | None) -> None:
+        if value is None:
+            self._end_time = None
+            return
+        value = float(value)
+        if value < self.simulation_time:
+            raise ValueError(
+                "This point process has already been simulated until time "
+                f"{self.simulation_time:f}, you cannot set a smaller end_time ({value:f})"
+            )
+        self._end_time = value
+
+    @property
+    def n_nodes(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def simulation_time(self) -> float:
+        return float(self._time)
+
+    @property
+    def n_total_jumps(self) -> int:
+        return int(sum(len(ts) for ts in self._timestamps))
+
+    @property
+    def timestamps(self) -> list[np.ndarray]:
+        return [np.asarray(ts, dtype=float) for ts in self._timestamps]
+
+    @property
+    def tracked_intensity(self) -> list[np.ndarray]:
+        if not self.is_intensity_tracked():
+            raise ValueError("Intensity has not been tracked")
+        return [np.asarray(values, dtype=float) for values in self._tracked_intensity]
+
+    @property
+    def intensity_tracked_times(self) -> np.ndarray:
+        if not self.is_intensity_tracked():
+            raise ValueError("Intensity has not been tracked")
+        return np.asarray(self._tracked_times, dtype=float)
+
+    @property
+    def intensity_track_step(self) -> float:
+        return self._intensity_track_step
+
+    @property
+    def tracked_compensator(self) -> list[np.ndarray]:
+        return self._tracked_compensator
+
+    def _init_storage(self) -> None:
+        self._timestamps = [[] for _ in range(self.n_nodes)]
+        self._tracked_intensity = [[] for _ in range(self.n_nodes)]
+        self._tracked_times = []
+        self._next_track_time = 0.0
+        self._tracked_compensator = [np.asarray([], dtype=float) for _ in range(self.n_nodes)]
+
+    def reset(self) -> None:
+        self._time = 0.0
+        self._init_storage()
+
+    def track_intensity(self, intensity_track_step: float = -1.0) -> None:
+        self._intensity_track_step = float(intensity_track_step)
+        self._tracked_times = []
+        self._next_track_time = 0.0
+        self._tracked_intensity = [[] for _ in range(self.n_nodes)]
+
+    def is_intensity_tracked(self) -> bool:
+        return self._intensity_track_step > 0.0
+
+    def threshold_negative_intensity(self, allow: bool = True) -> None:
+        self._threshold_negative_intensity = bool(allow)
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        del include_current_jumps
+        raise NotImplementedError
+
+    def _total_intensity_bound(self, t: float, include_current_jumps: bool = True) -> float:
+        intensity = self._handle_negative_intensity(
+            self._intensity_at(t, include_current_jumps=include_current_jumps)
+        )
+        return float(np.sum(np.maximum(intensity, 0.0)))
+
+    def _record_intensity(self, t: float, include_current_jumps: bool = True) -> None:
+        if not self.is_intensity_tracked():
+            return
+        values = self._handle_negative_intensity(
+            self._intensity_at(t, include_current_jumps=include_current_jumps)
+        )
+        self._tracked_times.append(float(t))
+        for i, value in enumerate(values):
+            self._tracked_intensity[i].append(float(value))
+
+    def _record_regular_intensity_until(self, stop_time: float) -> None:
+        if not self.is_intensity_tracked():
+            return
+        while self._next_track_time + self._intensity_track_step < stop_time:
+            self._next_track_time += self._intensity_track_step
+            self._record_intensity(self._next_track_time)
+
+    def _handle_negative_intensity(self, intensity: np.ndarray) -> np.ndarray:
+        if np.any(intensity < 0):
+            if self._threshold_negative_intensity:
+                return np.maximum(intensity, 0.0)
+            raise RuntimeError(
+                "Simulation stopped because intensity went negative "
+                "(you could call ``threshold_negative_intensity`` to allow it)"
+            )
+        return intensity
+
+    def _simulate(self):
+        if self.end_time is None and self.max_jumps is None:
+            raise ValueError("Either end_time or max_jumps must be set")
+        if self.end_time is not None and float(self.end_time) == self.simulation_time:
+            warnings.warn(
+                f"This process has already been simulated until time {float(self.end_time):f}",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        end_time = math.inf if self.end_time is None else float(self.end_time)
+        max_jumps = math.inf if self.max_jumps is None else int(self.max_jumps)
+        if end_time < self._time:
+            raise ValueError(
+                "This point process has already been simulated until time "
+                f"{self._time:f}, you cannot simulate it until {end_time:f}"
+            )
+        if self._time == 0.0 and self.n_total_jumps == 0 and not self._tracked_times:
+            self._record_intensity(0.0)
+
+        while self._time < end_time and self.n_total_jumps < max_jumps:
+            bound = self._total_intensity_bound(self._time, include_current_jumps=True)
+            if bound <= 0 or not np.isfinite(bound):
+                if math.isfinite(end_time):
+                    self._record_regular_intensity_until(end_time)
+                    self._time = end_time
+                break
+
+            candidate_time = self._time + float(self._rng.exponential(1.0 / bound))
+            self._record_regular_intensity_until(min(candidate_time, end_time))
+
+            if candidate_time >= end_time:
+                self._time = end_time
+                break
+
+            self._time = candidate_time
+            intensity = self._handle_negative_intensity(
+                self._intensity_at(self._time, include_current_jumps=False)
+            )
+            total_intensity = float(np.sum(intensity))
+            if total_intensity <= 0 or self._rng.uniform() * bound > total_intensity:
+                continue
+
+            threshold = self._rng.uniform() * total_intensity
+            cumulative = np.cumsum(intensity)
+            node = int(np.searchsorted(cumulative, threshold, side="right"))
+            node = min(node, self.n_nodes - 1)
+            self._timestamps[node].append(self._time)
+            self._record_intensity(self._time, include_current_jumps=True)
+
+        return self
+
+    def set_timestamps(self, timestamps: list[Any], end_time: float | None = None):
+        if len(timestamps) != self.n_nodes:
+            raise ValueError(f"expected {self.n_nodes} timestamp arrays")
+        arrays = []
+        for node, ts in enumerate(timestamps):
+            arr = np.asarray(ts, dtype=float)
+            if arr.ndim != 1:
+                raise ValueError("timestamps must be one-dimensional")
+            if arr.size and np.any(np.diff(arr) < 0):
+                raise ValueError(f"timestamps for node {node} must be sorted")
+            if arr.size and arr[0] < 0:
+                raise ValueError("timestamps must be non-negative")
+            arrays.append(arr)
+        if end_time is None:
+            end_time = max((float(arr[-1]) for arr in arrays if arr.size), default=0.0)
+        self.end_time = float(end_time)
+        latest = max((float(arr[-1]) for arr in arrays if arr.size), default=0.0)
+        if self.end_time < latest:
+            raise ValueError(
+                f"end_time={self.end_time} is before latest timestamp {latest}"
+            )
+
+        events = sorted(
+            (float(t), node) for node, arr in enumerate(arrays) for t in arr
+        )
+        self.reset()
+        for jump_time, node in events:
+            self._record_regular_intensity_until(jump_time)
+            self._time = jump_time
+            self._record_intensity(jump_time, include_current_jumps=True)
+            self._timestamps[node].append(jump_time)
+        self._record_regular_intensity_until(float(self.end_time))
+        self._time = float(self.end_time)
+        return self
+
+    def store_compensator_values(self):
+        self._tracked_compensator = []
+        for node, timestamps in enumerate(self.timestamps):
+            values = [self._evaluate_compensator(node, float(t)) for t in timestamps]
+            self._tracked_compensator.append(np.asarray(values, dtype=float))
+        return self
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        intensity = self._intensity_at
+        xs = np.linspace(0.0, t, max(16, int(256 * max(t, 1.0))))
+        ys = np.asarray([intensity(float(x))[node] for x in xs], dtype=float)
+        return float(np.trapezoid(np.maximum(ys, 0.0), xs))
+
+
+class SimuPoissonProcess(SimuPointProcess):
+    """Homogeneous Poisson process."""
+
+    def __init__(
+        self,
+        intensities: float | Any,
+        end_time: float | None = None,
+        max_jumps: int | None = None,
+        verbose: bool = True,
+        seed: int | None = None,
+    ):
+        self._intensities_is_scalar = np.isscalar(intensities)
+        self._intensities = np.atleast_1d(np.asarray(intensities, dtype=float))
+        if np.any(self._intensities < 0):
+            raise ValueError("Poisson intensities must be non-negative")
+        super().__init__(end_time=end_time, max_jumps=max_jumps, seed=seed, verbose=verbose)
+        self._init_storage()
+
+    @property
+    def n_nodes(self) -> int:
+        return int(self._intensities.size)
+
+    @property
+    def intensities(self) -> float | np.ndarray:
+        if self._intensities_is_scalar:
+            return float(self._intensities[0])
+        return self._intensities.copy()
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        del t
+        del include_current_jumps
+        return self._intensities.copy()
+
+    def _simulate(self):
+        if self.end_time is None and self.max_jumps is None:
+            raise ValueError("Either end_time or max_jumps must be set")
+        if self.end_time is not None and float(self.end_time) == self.simulation_time:
+            warnings.warn(
+                f"This process has already been simulated until time {float(self.end_time):f}",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        end_time = math.inf if self.end_time is None else float(self.end_time)
+        max_jumps = math.inf if self.max_jumps is None else int(self.max_jumps)
+        if end_time < self._time:
+            raise ValueError(
+                "This point process has already been simulated until time "
+                f"{self._time:f}, you cannot simulate it until {end_time:f}"
+            )
+        if self._time == 0.0 and self.n_total_jumps == 0 and not self._tracked_times:
+            self._record_intensity(0.0)
+
+        total_intensity = float(np.sum(self._intensities))
+        if total_intensity <= 0.0:
+            if math.isfinite(end_time):
+                self._record_regular_intensity_until(end_time)
+                self._time = end_time
+            return self
+
+        chunk_size = 4096
+        while self._time < end_time and self.n_total_jumps < max_jumps:
+            remaining = max_jumps - self.n_total_jumps
+            current_chunk = chunk_size if not math.isfinite(remaining) else min(chunk_size, int(remaining))
+            if current_chunk <= 0:
+                break
+            uniforms = self._rng.random((current_chunk, 2))
+            event_times = np.empty(current_chunk, dtype=float)
+            event_nodes = np.empty(current_chunk, dtype=np.int64)
+            count, stop_time, hit_end = homogeneous_poisson_events(
+                self._time,
+                end_time,
+                self._intensities,
+                uniforms,
+                event_times,
+                event_nodes,
+            )
+            for index in range(count):
+                jump_time = float(event_times[index])
+                self._record_regular_intensity_until(jump_time)
+                self._time = jump_time
+                self._timestamps[int(event_nodes[index])].append(jump_time)
+                self._record_intensity(jump_time, include_current_jumps=True)
+            if hit_end:
+                self._record_regular_intensity_until(stop_time)
+                self._time = stop_time
+                break
+            if count == 0:
+                self._time = stop_time
+                continue
+            self._time = float(event_times[count - 1])
+        return self
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        return float(self._intensities[node] * t)
+
+
+class SimuInhomogeneousPoisson(SimuPointProcess):
+    """Inhomogeneous Poisson process driven by time functions."""
+
+    def __init__(
+        self,
+        intensities_functions: list[TimeFunction],
+        end_time: float | None = None,
+        max_jumps: int | None = None,
+        seed: int | None = None,
+        verbose: bool = True,
+    ):
+        if len(intensities_functions) == 0:
+            raise ValueError("at least one intensity function is required")
+        self.intensities_functions = list(intensities_functions)
+        super().__init__(end_time=end_time, max_jumps=max_jumps, seed=seed, verbose=verbose)
+        self._init_storage()
+
+    @property
+    def n_nodes(self) -> int:
+        return len(self.intensities_functions)
+
+    def intensity_value(self, node: int, times: Any):
+        return self.intensities_functions[node].value(times)
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        del include_current_jumps
+        return np.asarray([fn.value(t) for fn in self.intensities_functions], dtype=float)
+
+    def _total_intensity_bound(self, t: float, include_current_jumps: bool = True) -> float:
+        del include_current_jumps
+        return float(sum(fn.future_bound(t) for fn in self.intensities_functions))
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        return float(self.intensities_functions[node].primitive(t))
+
+
+class SimuHawkes(SimuPointProcess):
+    """Hawkes process simulation by thinning."""
+
+    def __init__(
+        self,
+        kernels: Any | None = None,
+        baseline: Any | None = None,
+        n_nodes: int | None = None,
+        end_time: float | None = None,
+        period_length: float | None = None,
+        max_jumps: int | None = None,
+        seed: int | None = None,
+        verbose: bool = True,
+        force_simulation: bool = False,
+    ):
+        self.force_simulation = force_simulation
+        self.period_length = period_length
+        self._kernel_0 = HawkesKernel0()
+        kernels_array, baseline_array, inferred_nodes = self._coerce_parameters(
+            kernels, baseline, n_nodes
+        )
+        self._n_nodes = inferred_nodes
+        super().__init__(end_time=end_time, max_jumps=max_jumps, seed=seed, verbose=verbose)
+        self.kernels = kernels_array
+        self.baseline = baseline_array
+        self._init_storage()
+
+    @staticmethod
+    def _coerce_parameters(kernels: Any, baseline: Any, n_nodes: int | None):
+        if kernels is not None:
+            kernels = np.asarray(kernels, dtype=object)
+        if baseline is not None:
+            baseline = np.asarray(baseline, dtype=object if _contains_time_function(baseline) else float)
+
+        if n_nodes is not None and (kernels is not None or baseline is not None):
+            raise ValueError("n_nodes is inferred when kernels or baseline are provided")
+        if n_nodes is None:
+            if baseline is not None:
+                n_nodes = int(baseline.shape[0])
+            elif kernels is not None:
+                n_nodes = int(kernels.shape[0])
+            else:
+                raise ValueError("n_nodes must be provided if kernels and baseline are None")
+        if n_nodes <= 0:
+            raise ValueError("n_nodes must be positive")
+
+        if kernels is None:
+            zero_kernel = HawkesKernel0()
+            kernels = np.empty((n_nodes, n_nodes), dtype=object)
+            kernels[:, :] = zero_kernel
+        if kernels.shape != (n_nodes, n_nodes):
+            raise ValueError(f"kernels shape should be {(n_nodes, n_nodes)}")
+        zero_kernel = HawkesKernel0()
+        clean_kernels = np.empty((n_nodes, n_nodes), dtype=object)
+        for i, j in product(range(n_nodes), range(n_nodes)):
+            value = kernels[i, j]
+            if isinstance(value, HawkesKernel):
+                clean_kernels[i, j] = value
+            elif value == 0:
+                clean_kernels[i, j] = zero_kernel
+            else:
+                clean_kernels[i, j] = value
+            if not isinstance(clean_kernels[i, j], HawkesKernel):
+                raise ValueError("kernel entries must be HawkesKernel objects or 0")
+
+        if baseline is None:
+            baseline = np.zeros(n_nodes, dtype=float)
+        if baseline.shape[0] != n_nodes:
+            raise ValueError("baseline length does not match n_nodes")
+        if baseline.ndim > 2:
+            raise ValueError("baseline must have at most two dimensions")
+        return clean_kernels, baseline, n_nodes
+
+    @property
+    def n_nodes(self) -> int:
+        return self._n_nodes
+
+    def check_parameters_coherence(self, kernels=None, baseline=None, n_nodes=None) -> None:
+        set_kernels = kernels is not None
+        set_baseline = baseline is not None
+        set_n_nodes = n_nodes is not None
+        if set_n_nodes and (set_kernels or set_baseline):
+            raise ValueError(
+                "n_nodes will be automatically calculated if baseline or kernels is set"
+            )
+        if not set_n_nodes and not set_kernels and not set_baseline:
+            raise ValueError("n_nodes must be given if neither kernels, nor baseline are given")
+        if set_kernels and set_baseline and len(kernels) != len(baseline):
+            raise ValueError(
+                "kernels and baseline have different length. "
+                f"kernels has length {len(kernels)}, whereas baseline has length {len(baseline)}."
+            )
+
+    def set_kernel(self, i: int, j: int, kernel: HawkesKernel | float | int) -> None:
+        self.kernels[i, j] = HawkesKernel0() if kernel == 0 else kernel
+
+    def set_baseline(self, i: int, baseline: Any) -> None:
+        self.baseline[i] = baseline
+
+    def _baseline_value(self, i: int, t: float) -> float:
+        value = self.baseline[i]
+        if isinstance(value, TimeFunction):
+            return float(value.value(t))
+        arr = np.asarray(value)
+        if arr.ndim == 0:
+            return float(arr)
+        if self.period_length is None:
+            raise ValueError("period_length is required for piecewise baseline arrays")
+        n_intervals = arr.size
+        idx = int(math.floor(((t % self.period_length) / self.period_length) * n_intervals))
+        return float(arr[min(idx, n_intervals - 1)])
+
+    def _baseline_bound(self, i: int, t: float) -> float:
+        value = self.baseline[i]
+        if isinstance(value, TimeFunction):
+            return float(value.future_bound(t))
+        arr = np.asarray(value, dtype=float)
+        return float(max(np.max(arr), 0.0))
+
+    def get_baseline_values(self, i: int, t_values: Any) -> np.ndarray:
+        arr = np.asarray(t_values, dtype=float)
+        return np.vectorize(lambda t: self._baseline_value(i, float(t)), otypes=[float])(arr)
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        values = np.zeros(self.n_nodes, dtype=float)
+        timestamps = self._timestamps
+        for i in range(self.n_nodes):
+            values[i] = self._baseline_value(i, t)
+            for j in range(self.n_nodes):
+                values[i] += _kernel_convolution(
+                    self.kernels[i, j],
+                    t,
+                    timestamps[j],
+                    include_current_jumps=include_current_jumps,
+                )
+        return values
+
+    def _total_intensity_bound(self, t: float, include_current_jumps: bool = True) -> float:
+        timestamps = self._timestamps
+        total = 0.0
+        for i in range(self.n_nodes):
+            total += self._baseline_bound(i, t)
+            for j in range(self.n_nodes):
+                kernel = self.kernels[i, j]
+                if kernel.is_zero():
+                    continue
+                if isinstance(kernel, (HawkesKernelExp, HawkesKernelSumExp)):
+                    total += max(
+                        _kernel_convolution(
+                            kernel,
+                            t,
+                            timestamps[j],
+                            include_current_jumps=include_current_jumps,
+                        ),
+                        0.0,
+                    )
+                else:
+                    if isinstance(kernel, HawkesKernelTimeFunc):
+                        tf = kernel.time_function
+                        relevant = _kernel_history_window(
+                            kernel, t, timestamps[j], include_current_jumps
+                        )
+                        total += timefunc_kernel_future_bound_sum(
+                            t,
+                            relevant,
+                            tf.original_t,
+                            tf.original_y,
+                            tf.border_type,
+                            tf.inter_mode,
+                            tf.border_value,
+                            tf.is_constant,
+                            tf.constant,
+                            kernel.get_support(),
+                            include_current=include_current_jumps,
+                        )
+                    else:
+                        for tj in _kernel_history_window(
+                            kernel, t, timestamps[j], include_current_jumps
+                        ):
+                            total += kernel.future_bound(t - tj)
+        return float(max(total, 0.0))
+
+    def _simulate(self):
+        if self.baseline.dtype != object and np.linalg.norm(self.baseline.astype(float)) == 0:
+            warnings.warn("Baselines have not been set, so this Hawkes process may not jump")
+        radius = self.spectral_radius()
+        if not self.force_simulation and self.max_jumps is None and radius >= 1.0:
+            raise ValueError(
+                "Simulation not launched as this Hawkes process is not stable "
+                f"(spectral radius of {radius:.2g}). You can use force_simulation "
+                "parameter if you really want to simulate it"
+            )
+        if self._can_use_mixed_powerlaw_fast_path():
+            return self._simulate_mixed_powerlaw_fast_path()
+        if self._can_use_exp_timefunc_fast_path():
+            return self._simulate_exp_timefunc_fast_path()
+        return super()._simulate()
+
+    def _can_use_mixed_powerlaw_fast_path(self) -> bool:
+        if self.is_intensity_tracked() or _contains_time_function(self.baseline):
+            return False
+        if self._time != 0.0 or any(len(timestamps) for timestamps in self._timestamps):
+            return False
+        if _constant_numeric_baseline_array(self.baseline) is None:
+            return False
+        has_powerlaw = any(isinstance(kernel, HawkesKernelPowerLaw) for kernel in self.kernels.flat)
+        if not has_powerlaw:
+            return False
+        supported = (HawkesKernel0, HawkesKernelExp, HawkesKernelPowerLaw, HawkesKernelTimeFunc)
+        if not all(isinstance(kernel, supported) for kernel in self.kernels.flat):
+            return False
+        return all(
+            isinstance(kernel, (HawkesKernel0, HawkesKernelExp)) or math.isfinite(kernel.get_support())
+            for kernel in self.kernels.flat
+        )
+
+    def _mixed_powerlaw_parameters(self):
+        n_nodes = self.n_nodes
+        kernel_types = np.zeros((n_nodes, n_nodes), dtype=np.int64)
+        p1 = np.zeros((n_nodes, n_nodes), dtype=float)
+        p2 = np.zeros((n_nodes, n_nodes), dtype=float)
+        p3 = np.zeros((n_nodes, n_nodes), dtype=float)
+        supports = np.zeros((n_nodes, n_nodes), dtype=float)
+        max_time_points = 1
+        for kernel in self.kernels.flat:
+            if isinstance(kernel, HawkesKernelTimeFunc):
+                max_time_points = max(max_time_points, int(kernel.time_function.original_t.size))
+        tf_t_values = np.zeros((n_nodes, n_nodes, max_time_points), dtype=float)
+        tf_y_values = np.zeros((n_nodes, n_nodes, max_time_points), dtype=float)
+        tf_sizes = np.zeros((n_nodes, n_nodes), dtype=np.int64)
+        tf_inter_modes = np.zeros((n_nodes, n_nodes), dtype=np.int64)
+        tf_border_types = np.zeros((n_nodes, n_nodes), dtype=np.int64)
+        tf_border_values = np.zeros((n_nodes, n_nodes), dtype=float)
+
+        for i, j in product(range(n_nodes), range(n_nodes)):
+            kernel = self.kernels[i, j]
+            supports[i, j] = float(kernel.get_support())
+            if isinstance(kernel, HawkesKernel0):
+                kernel_types[i, j] = 0
+            elif isinstance(kernel, HawkesKernelExp):
+                kernel_types[i, j] = 1
+                p1[i, j] = kernel.intensity
+                p2[i, j] = kernel.decay
+            elif isinstance(kernel, HawkesKernelPowerLaw):
+                kernel_types[i, j] = 2
+                p1[i, j] = kernel.multiplier
+                p2[i, j] = kernel.cutoff
+                p3[i, j] = kernel.exponent
+            elif isinstance(kernel, HawkesKernelTimeFunc):
+                kernel_types[i, j] = 3
+                tf = kernel.time_function
+                size = int(tf.original_t.size)
+                tf_t_values[i, j, :size] = tf.original_t
+                tf_y_values[i, j, :size] = tf.original_y
+                tf_sizes[i, j] = size
+                tf_inter_modes[i, j] = int(tf.inter_mode)
+                tf_border_types[i, j] = int(tf.border_type)
+                tf_border_values[i, j] = float(tf.border_value)
+        return (
+            kernel_types,
+            p1,
+            p2,
+            p3,
+            supports,
+            tf_t_values,
+            tf_y_values,
+            tf_sizes,
+            tf_inter_modes,
+            tf_border_types,
+            tf_border_values,
+        )
+
+    def _simulate_mixed_powerlaw_fast_path(self):
+        if self.end_time is None and self.max_jumps is None:
+            raise ValueError("Either end_time or max_jumps must be set")
+        end_time = math.inf if self.end_time is None else float(self.end_time)
+        max_jumps = int(self.max_jumps) if self.max_jumps is not None else np.iinfo(np.int64).max
+        if not math.isfinite(end_time):
+            return super()._simulate()
+
+        self.reset()
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._simulate()
+        params = self._mixed_powerlaw_parameters()
+        capacity = self._initial_fast_mixed_capacity(baseline, end_time, max_jumps)
+        seed = -1 if self.seed is None or self.seed < 0 else int(self.seed)
+        while True:
+            events, sizes, stop_time, n_total_jumps, status = simulate_mixed_hawkes(
+                baseline,
+                *params,
+                end_time,
+                max_jumps,
+                seed,
+                self._threshold_negative_intensity,
+                capacity,
+            )
+            if status == 1:
+                capacity *= 2
+                continue
+            if status == -1:
+                raise RuntimeError(
+                    "Simulation stopped because intensity went negative "
+                    "(you could call ``threshold_negative_intensity`` to allow it)"
+                )
+            self._time = float(stop_time)
+            self._timestamps = [
+                [float(value) for value in events[node, : sizes[node]]]
+                for node in range(self.n_nodes)
+            ]
+            if n_total_jumps < max_jumps and self._time < end_time:
+                self._time = end_time
+            return self
+
+    def _initial_fast_mixed_capacity(self, baseline: np.ndarray, end_time: float, max_jumps: int) -> int:
+        if max_jumps < np.iinfo(np.int64).max:
+            return max(int(max_jumps), 1)
+        try:
+            mean_intensity = self.mean_intensity()
+            expected_jumps = float(max(np.sum(np.maximum(mean_intensity, 0.0)) * end_time, 0.0))
+        except (np.linalg.LinAlgError, ValueError):
+            expected_jumps = float(max(np.sum(np.maximum(baseline, 0.0)) * end_time, 0.0))
+        return max(int(expected_jumps * 2.0) + 1024, 1024)
+
+    def _can_use_exp_timefunc_fast_path(self) -> bool:
+        if self.is_intensity_tracked() or _contains_time_function(self.baseline):
+            return False
+        if self._time != 0.0 or any(len(timestamps) for timestamps in self._timestamps):
+            return False
+        if _constant_numeric_baseline_array(self.baseline) is None:
+            return False
+        return all(
+            isinstance(kernel, (HawkesKernel0, HawkesKernelExp, HawkesKernelTimeFunc))
+            for kernel in self.kernels.flat
+        )
+
+    def _simulate_exp_timefunc_fast_path(self):
+        """Simulate mixed exponential/time-function kernels without history rescans."""
+
+        if self.end_time is None and self.max_jumps is None:
+            raise ValueError("Either end_time or max_jumps must be set")
+        if self.end_time is not None and float(self.end_time) == self.simulation_time:
+            warnings.warn(
+                f"This process has already been simulated until time {float(self.end_time):f}",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        end_time = math.inf if self.end_time is None else float(self.end_time)
+        max_jumps = math.inf if self.max_jumps is None else int(self.max_jumps)
+        if end_time < self._time:
+            raise ValueError(
+                "This point process has already been simulated until time "
+                f"{self._time:f}, you cannot simulate it until {end_time:f}"
+            )
+        if self._time >= end_time or self.n_total_jumps >= max_jumps:
+            return self
+
+        self.reset()
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._simulate()
+        exp_values = np.zeros((self.n_nodes, self.n_nodes), dtype=float)
+        exp_decays = np.zeros((self.n_nodes, self.n_nodes), dtype=float)
+        exp_jumps = np.zeros((self.n_nodes, self.n_nodes), dtype=float)
+        for i, j in product(range(self.n_nodes), range(self.n_nodes)):
+            kernel = self.kernels[i, j]
+            if isinstance(kernel, HawkesKernelExp):
+                exp_decays[i, j] = kernel.decay
+                exp_jumps[i, j] = kernel.intensity * kernel.decay
+
+        while self._time < end_time and self.n_total_jumps < max_jumps:
+            bound_values = self._fast_bound_vector(baseline, exp_values)
+            bound = float(np.sum(bound_values))
+            if bound <= 0.0:
+                if math.isfinite(end_time):
+                    self._time = end_time
+                break
+            candidate_time = self._time + self._rng.exponential(1.0 / bound)
+            if candidate_time >= end_time:
+                self._time = end_time
+                break
+
+            elapsed = candidate_time - self._time
+            self._decay_exp_values(exp_values, exp_decays, elapsed)
+            self._time = float(candidate_time)
+            intensity = self._handle_negative_intensity(
+                self._fast_intensity_vector(baseline, exp_values)
+            )
+            total_intensity = float(np.sum(intensity))
+            if total_intensity <= 0.0 or self._rng.uniform() * bound > total_intensity:
+                continue
+
+            threshold = self._rng.uniform() * total_intensity
+            cumulative = np.cumsum(intensity)
+            node = int(np.searchsorted(cumulative, threshold, side="right"))
+            node = min(node, self.n_nodes - 1)
+            self._timestamps[node].append(self._time)
+            exp_values[:, node] += exp_jumps[:, node]
+        return self
+
+    @staticmethod
+    def _decay_exp_values(exp_values: np.ndarray, exp_decays: np.ndarray, elapsed: float) -> None:
+        if elapsed <= 0.0:
+            return
+        mask = exp_decays > 0.0
+        exp_values[mask] *= np.exp(-exp_decays[mask] * elapsed)
+
+    def _fast_bound_vector(self, baseline: np.ndarray, exp_values: np.ndarray) -> np.ndarray:
+        values = np.maximum(baseline, 0.0) + np.sum(np.maximum(exp_values, 0.0), axis=1)
+        for i, j in product(range(self.n_nodes), range(self.n_nodes)):
+            kernel = self.kernels[i, j]
+            if isinstance(kernel, HawkesKernelTimeFunc):
+                tf = kernel.time_function
+                relevant = _kernel_history_window(kernel, self._time, self._timestamps[j], True)
+                values[i] += timefunc_kernel_future_bound_sum(
+                    self._time,
+                    relevant,
+                    tf.original_t,
+                    tf.original_y,
+                    tf.border_type,
+                    tf.inter_mode,
+                    tf.border_value,
+                    tf.is_constant,
+                    tf.constant,
+                    kernel.get_support(),
+                    include_current=True,
+                )
+        return values
+
+    def _fast_intensity_vector(self, baseline: np.ndarray, exp_values: np.ndarray) -> np.ndarray:
+        values = baseline.astype(float, copy=True) + np.sum(exp_values, axis=1)
+        for i, j in product(range(self.n_nodes), range(self.n_nodes)):
+            kernel = self.kernels[i, j]
+            if isinstance(kernel, HawkesKernelTimeFunc):
+                tf = kernel.time_function
+                relevant = _kernel_history_window(kernel, self._time, self._timestamps[j], False)
+                values[i] += timefunc_kernel_convolution(
+                    self._time,
+                    relevant,
+                    tf.original_t,
+                    tf.original_y,
+                    tf.border_type,
+                    tf.inter_mode,
+                    tf.border_value,
+                    tf.is_constant,
+                    tf.constant,
+                    kernel.get_support(),
+                    include_current=False,
+                )
+        return values
+
+    def spectral_radius(self) -> float:
+        norms = np.empty((self.n_nodes, self.n_nodes), dtype=float)
+        for i, j in product(range(self.n_nodes), range(self.n_nodes)):
+            norms[i, j] = self.kernels[i, j].get_norm()
+        if norms.size == 1:
+            return float(norms[0, 0])
+        eigvals = np.linalg.eigvals(norms)
+        eigvals = np.real_if_close(eigvals)
+        if np.isrealobj(eigvals):
+            return float(np.max(eigvals.real))
+        return float(np.max(np.abs(eigvals)))
+
+    def mean_intensity(self) -> np.ndarray:
+        norms = np.empty((self.n_nodes, self.n_nodes), dtype=float)
+        base = np.empty(self.n_nodes, dtype=float)
+        for i in range(self.n_nodes):
+            base[i] = self._baseline_value(i, 0.0)
+            for j in range(self.n_nodes):
+                norms[i, j] = self.kernels[i, j].get_norm()
+        return np.linalg.solve(np.eye(self.n_nodes) - norms, base)
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        value = self._baseline_primitive(node, t)
+        timestamps = self.timestamps
+        for j in range(self.n_nodes):
+            value += self.kernels[node, j].get_primitive_convolution(t, timestamps[j])
+        return float(value)
+
+    def _baseline_primitive(self, node: int, t: float) -> float:
+        value = self.baseline[node]
+        if isinstance(value, TimeFunction):
+            return float(value.primitive(t))
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            return float(arr) * t
+        if self.period_length is None:
+            raise ValueError("period_length is required for piecewise baseline arrays")
+        dt = self.period_length / arr.size
+        full_periods = int(t // self.period_length)
+        rem = t - full_periods * self.period_length
+        total = full_periods * float(np.sum(arr) * dt)
+        for idx, baseline in enumerate(arr):
+            start = idx * dt
+            stop = min((idx + 1) * dt, rem)
+            if stop > start:
+                total += float(baseline) * (stop - start)
+        return float(total)
+
+
+class SimuHawkesExpKernels(SimuHawkes):
+    """Hawkes simulation with exponential kernels."""
+
+    def __init__(
+        self,
+        adjacency: Any,
+        decays: float | Any,
+        baseline: Any | None = None,
+        end_time: float | None = None,
+        period_length: float | None = None,
+        max_jumps: int | None = None,
+        seed: int | None = None,
+        verbose: bool = True,
+        force_simulation: bool = False,
+    ):
+        self.adjacency = np.asarray(adjacency, dtype=float)
+        if self.adjacency.ndim != 2 or self.adjacency.shape[0] != self.adjacency.shape[1]:
+            raise ValueError("adjacency matrix must be square")
+        self.decays = decays if isinstance(decays, (int, float)) else np.asarray(decays, dtype=float)
+        if not isinstance(self.decays, (int, float)) and self.decays.shape != self.adjacency.shape:
+            raise ValueError("decays must be scalar or have adjacency shape")
+        super().__init__(
+            kernels=self._build_exp_kernels(),
+            baseline=baseline,
+            end_time=end_time,
+            period_length=period_length,
+            max_jumps=max_jumps,
+            seed=seed,
+            verbose=verbose,
+            force_simulation=force_simulation,
+        )
+
+    def _build_exp_kernels(self) -> np.ndarray:
+        n_nodes = self.adjacency.shape[0]
+        kernels = np.empty((n_nodes, n_nodes), dtype=object)
+        zero_kernel = HawkesKernel0()
+        for i, j in product(range(n_nodes), range(n_nodes)):
+            intensity = float(self.adjacency[i, j])
+            decay = float(self.decays if isinstance(self.decays, (int, float)) else self.decays[i, j])
+            kernels[i, j] = zero_kernel if intensity == 0 else HawkesKernelExp(intensity, decay)
+        return kernels
+
+    def adjust_spectral_radius(self, spectral_radius: float) -> None:
+        original = self.spectral_radius()
+        if original == 0:
+            raise ValueError("cannot adjust spectral radius of a zero kernel matrix")
+        self.adjacency = self.adjacency * float(spectral_radius) / original
+        self.kernels = self._build_exp_kernels()
+
+    def _decays_matrix(self) -> np.ndarray:
+        if isinstance(self.decays, (int, float)):
+            return np.full_like(self.adjacency, float(self.decays), dtype=float)
+        return np.asarray(self.decays, dtype=float)
+
+    def _simulate(self):
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if (
+            baseline is None
+            or self.is_intensity_tracked()
+            or self.simulation_time != 0.0
+            or self.n_total_jumps != 0
+        ):
+            return super()._simulate()
+        if self.end_time is None and self.max_jumps is None:
+            raise ValueError("Either end_time or max_jumps must be set")
+        radius = self.spectral_radius()
+        if not self.force_simulation and self.max_jumps is None and radius >= 1.0:
+            raise ValueError(
+                "Simulation not launched as this Hawkes process is not stable "
+                f"(spectral radius of {radius:.2g}). You can use force_simulation "
+                "parameter if you really want to simulate it"
+            )
+
+        end_time = math.inf if self.end_time is None else float(self.end_time)
+        max_jumps = int(self.max_jumps) if self.max_jumps is not None else np.iinfo(np.int64).max
+        if not math.isfinite(end_time):
+            return super()._simulate()
+
+        capacity = self._initial_fast_exp_capacity(baseline, end_time, max_jumps)
+        seed = -1 if self.seed is None or self.seed < 0 else int(self.seed)
+        while True:
+            events, sizes, stop_time, n_total_jumps, status = simulate_exp_hawkes(
+                baseline,
+                self.adjacency,
+                self._decays_matrix(),
+                end_time,
+                max_jumps,
+                seed,
+                self._threshold_negative_intensity,
+                capacity,
+            )
+            if status == 1:
+                capacity *= 2
+                continue
+            if status == -1:
+                raise RuntimeError(
+                    "Simulation stopped because intensity went negative "
+                    "(you could call ``threshold_negative_intensity`` to allow it)"
+                )
+            self._time = float(stop_time)
+            self._timestamps = [
+                [float(value) for value in events[node, : sizes[node]]]
+                for node in range(self.n_nodes)
+            ]
+            if n_total_jumps < max_jumps and self._time < end_time:
+                self._time = end_time
+            return self
+
+    def _initial_fast_exp_capacity(self, baseline: np.ndarray, end_time: float, max_jumps: int) -> int:
+        if max_jumps < np.iinfo(np.int64).max:
+            return max(int(max_jumps), 1)
+        try:
+            mean_intensity = np.linalg.solve(np.eye(self.n_nodes) - self.adjacency, baseline)
+            expected_jumps = float(max(np.sum(np.maximum(mean_intensity, 0.0)) * end_time, 0.0))
+        except np.linalg.LinAlgError:
+            expected_jumps = float(max(np.sum(np.maximum(baseline, 0.0)) * end_time, 0.0))
+        return max(int(expected_jumps * 2.0) + 1024, 1024)
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._intensity_at(t, include_current_jumps=include_current_jumps)
+        events, sizes = pack_realization(self.timestamps)
+        return exp_intensity_vector(
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self._decays_matrix(),
+            include_current=include_current_jumps,
+        )
+
+    def _total_intensity_bound(self, t: float, include_current_jumps: bool = True) -> float:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._total_intensity_bound(t, include_current_jumps=include_current_jumps)
+        events, sizes = pack_realization(self.timestamps)
+        return exp_intensity_bound(
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self._decays_matrix(),
+            include_current=include_current_jumps,
+        )
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._evaluate_compensator(node, t)
+        events, sizes = pack_realization(self.timestamps)
+        return exp_compensator_value(
+            node,
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self._decays_matrix(),
+        )
+
+
+class SimuHawkesSumExpKernels(SimuHawkes):
+    """Hawkes simulation with sum-exponential kernels."""
+
+    def __init__(
+        self,
+        adjacency: Any,
+        decays: Any,
+        baseline: Any | None = None,
+        end_time: float | None = None,
+        period_length: float | None = None,
+        max_jumps: int | None = None,
+        seed: int | None = None,
+        verbose: bool = True,
+        force_simulation: bool = False,
+    ):
+        self.adjacency = np.asarray(adjacency, dtype=float)
+        self.decays = np.asarray(decays, dtype=float)
+        if self.adjacency.ndim != 3:
+            raise ValueError("adjacency must have shape (n_nodes, n_nodes, n_decays)")
+        if self.decays.ndim != 1 or self.adjacency.shape[2] != self.decays.size:
+            raise ValueError("decays length must match adjacency third dimension")
+        if self.adjacency.shape[0] != self.adjacency.shape[1]:
+            raise ValueError("adjacency first two dimensions must be square")
+        super().__init__(
+            kernels=self._build_sumexp_kernels(),
+            baseline=baseline,
+            end_time=end_time,
+            period_length=period_length,
+            max_jumps=max_jumps,
+            seed=seed,
+            verbose=verbose,
+            force_simulation=force_simulation,
+        )
+
+    @property
+    def n_decays(self) -> int:
+        return int(self.decays.size)
+
+    def _build_sumexp_kernels(self) -> np.ndarray:
+        n_nodes = self.adjacency.shape[0]
+        kernels = np.empty((n_nodes, n_nodes), dtype=object)
+        zero_kernel = HawkesKernel0()
+        for i, j in product(range(n_nodes), range(n_nodes)):
+            intensities = self.adjacency[i, j, :]
+            kernels[i, j] = (
+                zero_kernel
+                if np.allclose(intensities, 0.0)
+                else HawkesKernelSumExp(intensities, self.decays)
+            )
+        return kernels
+
+    def adjust_spectral_radius(self, spectral_radius: float) -> None:
+        original = self.spectral_radius()
+        if original == 0:
+            raise ValueError("cannot adjust spectral radius of a zero kernel matrix")
+        self.adjacency = self.adjacency * float(spectral_radius) / original
+        self.kernels = self._build_sumexp_kernels()
+
+    def _intensity_at(self, t: float, include_current_jumps: bool = False) -> np.ndarray:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._intensity_at(t, include_current_jumps=include_current_jumps)
+        events, sizes = pack_realization(self.timestamps)
+        return sumexp_intensity_vector(
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self.decays,
+            include_current=include_current_jumps,
+        )
+
+    def _total_intensity_bound(self, t: float, include_current_jumps: bool = True) -> float:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._total_intensity_bound(t, include_current_jumps=include_current_jumps)
+        events, sizes = pack_realization(self.timestamps)
+        return sumexp_intensity_bound(
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self.decays,
+            include_current=include_current_jumps,
+        )
+
+    def _evaluate_compensator(self, node: int, t: float) -> float:
+        baseline = _constant_numeric_baseline_array(self.baseline)
+        if baseline is None:
+            return super()._evaluate_compensator(node, t)
+        events, sizes = pack_realization(self.timestamps)
+        return sumexp_compensator_value(
+            node,
+            t,
+            events,
+            sizes,
+            baseline,
+            self.adjacency,
+            self.decays,
+        )
+
+
+class SimuHawkesMulti(Simu):
+    """Run repeated Hawkes simulations."""
+
+    def __init__(self, hawkes_simu: SimuHawkes, n_simulations: int, n_threads: int = 1):
+        if n_simulations <= 0:
+            raise ValueError("n_simulations must be positive")
+        self.hawkes_simu = hawkes_simu
+        self.n_simulations = int(n_simulations)
+        self.n_threads = int(n_threads) if n_threads > 0 else multiprocessing.cpu_count()
+        self._simulations = [copy.deepcopy(hawkes_simu) for _ in range(n_simulations)]
+        super().__init__(seed=hawkes_simu.seed, verbose=hawkes_simu.verbose)
+
+    @property
+    def seed(self) -> int | None:
+        return self.hawkes_simu.seed
+
+    @seed.setter
+    def seed(self, value: int | None) -> None:
+        if hasattr(self, "hawkes_simu") and hasattr(self, "_simulations"):
+            self.reseed_simulations(value)
+        else:
+            Simu.seed.fset(self, value)
+
+    def reseed_simulations(self, seed: int | None) -> None:
+        seed = None if seed is None else int(seed)
+        self._seed = seed
+        rng_seed = None if seed is None or seed < 0 else seed
+        self._rng = np.random.default_rng(rng_seed)
+        self.hawkes_simu.seed = seed
+        if seed is None or seed < 0:
+            seeds: list[int | None] = [None] * self.n_simulations
+        else:
+            seeds = [
+                int(sim_seed)
+                for sim_seed in self._rng.integers(
+                    0, 2**31 - 1, size=self.n_simulations, dtype=np.int64
+                )
+            ]
+        for simulation, sim_seed in zip(self._simulations, seeds):
+            simulation.seed = sim_seed
+
+    @property
+    def n_total_jumps(self) -> list[int]:
+        return [simu.n_total_jumps for simu in self._simulations]
+
+    @property
+    def timestamps(self) -> list[list[np.ndarray]]:
+        return [simu.timestamps for simu in self._simulations]
+
+    @property
+    def end_time(self) -> list[float | None]:
+        return [simu.end_time for simu in self._simulations]
+
+    @end_time.setter
+    def end_time(self, end_times: list[float]):
+        if len(end_times) != self.n_simulations:
+            raise ValueError(f"end_time must have length {self.n_simulations}")
+        for simu, end_time in zip(self._simulations, end_times):
+            simu.end_time = end_time
+
+    @property
+    def max_jumps(self) -> list[int | None]:
+        return [simu.max_jumps for simu in self._simulations]
+
+    @property
+    def simulation_time(self) -> list[float]:
+        return [simu.simulation_time for simu in self._simulations]
+
+    @property
+    def n_nodes(self) -> list[int]:
+        return [simu.n_nodes for simu in self._simulations]
+
+    @property
+    def spectral_radius(self) -> list[float]:
+        return [simu.spectral_radius() for simu in self._simulations]
+
+    @property
+    def mean_intensity(self) -> list[np.ndarray]:
+        return [simu.mean_intensity() for simu in self._simulations]
+
+    def get_single_simulation(self, i: int) -> SimuHawkes:
+        return self._simulations[i]
+
+    def _simulate(self):
+        executor_cls = ThreadPoolExecutor
+        try:
+            with executor_cls(max_workers=self.n_threads) as executor:
+                self._simulations = list(executor.map(_simulate_single, self._simulations))
+        except Exception:
+            with ProcessPoolExecutor(max_workers=self.n_threads) as executor:
+                self._simulations = list(executor.map(_simulate_single, self._simulations))
+        return self
+
+
+def _simulate_single(simulation: SimuHawkes) -> SimuHawkes:
+    simulation.simulate()
+    return simulation
+
+
+def _kernel_convolution(
+    kernel: HawkesKernel,
+    time: float,
+    timestamps: np.ndarray,
+    include_current_jumps: bool = False,
+) -> float:
+    if isinstance(kernel, HawkesKernelExp):
+        return exp_kernel_convolution(
+            time,
+            timestamps,
+            kernel.intensity,
+            kernel.decay,
+            include_current=include_current_jumps,
+        )
+    if isinstance(kernel, HawkesKernelSumExp):
+        return sumexp_kernel_convolution(
+            time,
+            timestamps,
+            kernel.intensities,
+            kernel.decays,
+            include_current=include_current_jumps,
+        )
+    if isinstance(kernel, HawkesKernelTimeFunc):
+        tf = kernel.time_function
+        relevant = _kernel_history_window(kernel, time, timestamps, include_current_jumps)
+        return timefunc_kernel_convolution(
+            time,
+            relevant,
+            tf.original_t,
+            tf.original_y,
+            tf.border_type,
+            tf.inter_mode,
+            tf.border_value,
+            tf.is_constant,
+            tf.constant,
+            kernel.get_support(),
+            include_current=include_current_jumps,
+        )
+    relevant = _kernel_history_window(kernel, time, timestamps, include_current_jumps)
+    if include_current_jumps:
+        return float(sum(kernel.get_value(time - tk) for tk in relevant))
+    return kernel.get_convolution(time, relevant)
+
+
+def _kernel_history_window(
+    kernel: HawkesKernel,
+    time: float,
+    timestamps,
+    include_current_jumps: bool = False,
+) -> np.ndarray:
+    if len(timestamps) == 0:
+        return np.empty(0, dtype=float)
+    end_side = "right" if include_current_jumps else "left"
+    if isinstance(timestamps, np.ndarray):
+        end = int(np.searchsorted(timestamps, float(time), side=end_side))
+    elif include_current_jumps:
+        end = bisect_right(timestamps, float(time))
+    else:
+        end = bisect_left(timestamps, float(time))
+    support = kernel.get_support()
+    if math.isinf(support):
+        start = 0
+    elif isinstance(timestamps, np.ndarray):
+        start = int(np.searchsorted(timestamps, float(time) - float(support), side="right"))
+    else:
+        start = bisect_right(timestamps, float(time) - float(support))
+    return np.asarray(timestamps[start:end], dtype=float)
+
+
+def _contains_time_function(value: Any) -> bool:
+    if isinstance(value, TimeFunction):
+        return True
+    if isinstance(value, (list, tuple, np.ndarray)):
+        return any(isinstance(v, TimeFunction) for v in np.asarray(value, dtype=object).flat)
+    return False
+
+
+def _constant_numeric_baseline_array(value: Any) -> np.ndarray | None:
+    try:
+        arr = np.asarray(value, dtype=float)
+    except (TypeError, ValueError):
+        return None
+    if arr.ndim != 1:
+        return None
+    return np.ascontiguousarray(arr, dtype=float)
+
