@@ -1,10 +1,4 @@
-"""Source-backed parity checks for tick's SumGaussians and BasisKernels tests.
-
-The assertions in this file are ported from:
-
-- tick/hawkes/inference/tests/hawkes_sumgaussians_test.py
-- tick/hawkes/inference/tests/hawkes_basis_kernels_test.py
-"""
+"""Source-backed parity checks for SumGaussians and BasisKernels behavior."""
 
 import sys
 import unittest

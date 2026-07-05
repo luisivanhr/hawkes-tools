@@ -1,4 +1,4 @@
-"""Expected unresolved tick Hawkes equivalence gaps.
+"""Expected unresolved Hawkes equivalence gaps.
 
 The registry is intentionally explicit. When a gap is fixed and the ledger
 classifier changes to ``pass``, remove the corresponding test id here.

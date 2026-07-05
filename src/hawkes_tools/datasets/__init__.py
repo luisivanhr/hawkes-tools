@@ -1,4 +1,4 @@
-"""Load vendored tick-datasets payloads and explicit external datasets."""
+"""Load vendored payloads and explicit external datasets."""
 
 from __future__ import annotations
 
@@ -29,8 +29,8 @@ _DATA_HOME_ENV = "HAWKES_TOOLS_DATASETS"
 _DEFAULT_HOME_NAME = "hawkes_tools_datasets"
 VENDORED_TICK_DATASETS_PATH = Path(__file__).resolve().parent / "vendor" / "tick-datasets"
 
-# Data payloads from X-DataInitiative/tick-datasets as of the crawled master
-# tree. Support scripts and README files are intentionally excluded.
+# Data payloads from the crawled upstream dataset tree. Support scripts and
+# README files are intentionally excluded.
 TICK_DATASET_FILES: tuple[str, ...] = (
     "binary/adult/adult.trn.bz2",
     "binary/adult/adult.tst.bz2",
@@ -156,10 +156,7 @@ EXTERNAL_DATASETS: dict[str, dict[str, object]] = {
         "n_features": URL_DATASET_N_FEATURES,
         "max_days": URL_DATASET_MAX_DAYS,
         "vendored": False,
-        "note": (
-            "Used by tick.dataset.fetch_url_dataset but not part of "
-            "X-DataInitiative/tick-datasets."
-        ),
+        "note": "Managed external URL reputation dataset; not part of the bundled payloads.",
     },
 }
 
@@ -186,13 +183,13 @@ def get_data_home(data_home: str | os.PathLike[str] | None = None) -> Path:
 
 
 def list_tick_datasets() -> tuple[str, ...]:
-    """Return all known tick-datasets payload paths."""
+    """Return all known bundled dataset payload paths."""
 
     return TICK_DATASET_FILES
 
 
 def tick_dataset_metadata(dataset_path: str) -> dict[str, object]:
-    """Return shape/source metadata for a vendored tick-datasets payload."""
+    """Return shape/source metadata for a vendored dataset payload."""
 
     normalized = _normalize_dataset_path(dataset_path)
     if normalized not in TICK_DATASET_MANIFEST:
@@ -216,13 +213,13 @@ def external_dataset_metadata(dataset_path: str) -> dict[str, object]:
 
 
 def vendored_tick_dataset_path(dataset_path: str) -> Path:
-    """Return the bundled path for a tick-datasets payload."""
+    """Return the bundled path for a dataset payload."""
 
     return VENDORED_TICK_DATASETS_PATH / Path(_normalize_dataset_path(dataset_path))
 
 
 def is_tick_dataset_vendored(dataset_path: str) -> bool:
-    """Return whether a tick-datasets payload is bundled with the package."""
+    """Return whether a dataset payload is bundled with the package."""
 
     return vendored_tick_dataset_path(dataset_path).exists()
 
@@ -254,7 +251,7 @@ def fetch_tick_dataset(
     data_home: str | os.PathLike[str] | None = None,
     n_features: int | None = None,
 ):
-    """Load a tick-datasets payload from explicit cache or package data.
+    """Load a dataset payload from explicit cache or package data.
 
     ``.npz`` files load as either a single array or a tuple of ``(key, array)``
     pairs. SVMlight-style ``.bz2`` files load as ``(X, y)`` with ``X`` a SciPy
@@ -318,7 +315,7 @@ def download_url_dataset(
     verbose: bool = True,
     dataset_url: str = DEFAULT_URL_DATASET_URL,
 ) -> Path:
-    """Download the URL reputation SVMlight tarball used by tick."""
+    """Download the URL reputation SVMlight tarball."""
 
     return _download_dataset(
         dataset_url,

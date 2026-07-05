@@ -1,1 +1,1 @@
-"""Tick Hawkes equivalence ledger tests."""
+"""Hawkes equivalence ledger tests."""

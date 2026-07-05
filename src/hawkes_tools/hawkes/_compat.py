@@ -1,4 +1,4 @@
-"""Compatibility aliases for tick's historical Hawkes deep import paths."""
+"""Compatibility aliases for historical Hawkes deep import paths."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _single_name(fullname: str, name: str, value: object) -> None:
 
 
 def register_tick_deep_import_aliases() -> None:
-    """Expose tick-like Hawkes deep modules without duplicating implementation files."""
+    """Expose Hawkes deep modules without duplicating implementation files."""
 
     package = __name__.rsplit(".", 1)[0]
 

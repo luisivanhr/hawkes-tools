@@ -1,8 +1,8 @@
 """Public pure-Python proximal operators.
 
-These classes mirror the tick prox names that are useful with Hawkes learners
-and custom Hawkes models.  They are implemented in Python/NumPy and share the
-same code used internally by :mod:`hawkes_tools.hawkes`.
+These classes provide prox operators that are useful with Hawkes learners and
+custom Hawkes models. They are implemented in Python/NumPy and share the same
+code used internally by :mod:`hawkes_tools.hawkes`.
 """
 
 from hawkes_tools.optim import (

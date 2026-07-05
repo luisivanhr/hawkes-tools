@@ -1,7 +1,7 @@
 """Standalone generalized linear models and simulators.
 
-The module mirrors the small tick GLM surface used by the example gallery while
-staying pure Python/NumPy.  Coefficient vectors follow tick's convention:
+The module provides the GLM surface used by the example gallery while staying
+pure Python/NumPy. Coefficient vectors follow the established convention:
 feature weights first and the optional intercept last.
 """
 
@@ -67,7 +67,7 @@ def _compile(func):
 
 
 def weights_sparse_gauss(n_weights: int = 100, nnz: int = 10, std: float = 1.0, dtype="float64") -> np.ndarray:
-    """Return a tick-style sparse Gaussian coefficient vector."""
+    """Return a sparse Gaussian coefficient vector."""
 
     if nnz >= n_weights:
         warn("nnz must be smaller than n_weights using nnz=n_weights instead", RuntimeWarning, stacklevel=2)
@@ -448,7 +448,7 @@ class ModelHinge(_BaseHingeModel):
 
 
 class ModelQuadraticHinge(_BaseHingeModel):
-    """Squared hinge loss model using tick's ``0.5 * max(0, 1 - yz)^2`` convention."""
+    """Squared hinge loss model using ``0.5 * max(0, 1 - yz)^2``."""
 
     _lip_factor = 1.0
 

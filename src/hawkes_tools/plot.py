@@ -150,7 +150,7 @@ def plot_history(
     ax=None,
     **kwargs,
 ):
-    """Plot tick-style optimization histories."""
+    """Plot optimization histories."""
 
     del kwargs
     plt = _plt()
@@ -289,7 +289,7 @@ def _extract_process_interval(
     t_max=None,
     max_jumps=None,
 ):
-    """Extract a tick-style plotting interval from point-process arrays."""
+    """Extract a plotting interval from point-process arrays."""
 
     t_min_is_specified = t_min is not None
     if not t_min_is_specified:

@@ -1,4 +1,4 @@
-"""Pure-Python preprocessing helpers compatible with tick's public surface."""
+"""Pure-Python preprocessing helpers."""
 
 from .features_binarizer import FeaturesBinarizer
 from .longitudinal_features_lagger import LongitudinalFeaturesLagger

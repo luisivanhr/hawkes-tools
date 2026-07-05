@@ -1,4 +1,4 @@
-"""Standalone base-model protocols compatible with tick's public classes."""
+"""Standalone base-model protocols."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ PASS_OVER_DATA = "n_passes_over_data"
 
 
 class Model(ABC):
-    """Abstract zero-order model with tick-style fit guards and counters."""
+    """Abstract zero-order model with fit guards and counters."""
 
     pass_per_operation = {LOSS: 1}
 

@@ -1,4 +1,4 @@
-"""Print the current tick Hawkes equivalence ledger summary."""
+"""Print the current Hawkes equivalence ledger summary."""
 
 from __future__ import annotations
 

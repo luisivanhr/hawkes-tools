@@ -1,8 +1,4 @@
-"""Source-backed parity checks for tick's HawkesADM4 tests.
-
-The assertions in this file are ported from
-tick/hawkes/inference/tests/hawkes_adm4_test.py.
-"""
+"""Source-backed parity checks for HawkesADM4 behavior."""
 
 import sys
 import unittest

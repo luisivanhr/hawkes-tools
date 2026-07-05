@@ -1,4 +1,4 @@
-"""Selection metrics matching the small tick metrics surface."""
+"""Selection metrics for sparse-support recovery."""
 
 from __future__ import annotations
 

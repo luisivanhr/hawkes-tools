@@ -1,9 +1,8 @@
 """Pure-Python solver and proximal-operator utilities.
 
-The Hawkes learners only need a small subset of tick's optimization toolbox,
-but exposing the same regularization concepts is useful for custom Hawkes
-models.  These classes favor correctness and a stable Python API over exact
-C++ implementation parity.
+The Hawkes learners only need a small optimization toolbox, but exposing the
+same regularization concepts is useful for custom Hawkes models. These classes
+favor correctness and a stable Python API over exact C++ implementation parity.
 """
 
 from __future__ import annotations

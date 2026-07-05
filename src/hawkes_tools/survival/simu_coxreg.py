@@ -1,4 +1,4 @@
-"""Cox proportional-hazards simulation matching tick's gallery API."""
+"""Cox proportional-hazards simulation for the gallery API."""
 
 from __future__ import annotations
 

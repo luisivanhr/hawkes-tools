@@ -38,7 +38,7 @@ class BaseEstimator:
 
     @property
     def name(self) -> str:
-        """Return the class name, matching tick's public ``Base.name``."""
+        """Return the class name."""
 
         return getattr(self, "_name", self.__class__.__name__)
 
@@ -89,7 +89,7 @@ class BaseEstimator:
 
 
 class Base(BaseEstimator):
-    """Standalone replacement for tick's public ``Base`` helper.
+    """Standalone public ``Base`` helper.
 
     The original class uses a metaclass to enforce read-only descriptors and to
     relay setters into C++ objects. hawkes-tools keeps the useful Python helper
@@ -113,7 +113,7 @@ def actual_kwargs(function):
 
 
 class ThreadPool:
-    """Small standalone thread pool compatible with tick's base utility."""
+    """Small standalone thread pool utility."""
 
     def __init__(self, with_lock: bool = False, max_threads: int = 8):
         self._max_threads = int(max_threads)
@@ -218,7 +218,7 @@ def normalize_events(
     events: list[Any] | tuple[Any, ...],
     end_times: float | Iterable[float] | np.ndarray | None = None,
 ) -> tuple[list[list[np.ndarray]], np.ndarray, int]:
-    """Normalize tick-style event input.
+    """Normalize event input.
 
     Accepted event layouts are either a single realization
     ``list[np.ndarray]`` or multiple realizations
@@ -305,7 +305,7 @@ def _looks_like_timestamp_sequence(value: Any) -> bool:
 
 
 class TimeFunction(BaseEstimator):
-    """Piecewise time function compatible with the tick Hawkes API."""
+    """Piecewise time function for Hawkes APIs."""
 
     InterLinear = 0
     InterConstLeft = 1

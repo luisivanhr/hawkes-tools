@@ -1,8 +1,8 @@
 """Robust linear regression with sample intercepts.
 
-This module mirrors the tick robust linear-regression surface used by the
-gallery.  The model is a linear least-squares objective augmented with one
-intercept per sample, with SLOPE regularization on those sample intercepts.
+This module provides the robust linear-regression surface used by the gallery.
+The model is a linear least-squares objective augmented with one intercept per
+sample, with SLOPE regularization on those sample intercepts.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ __all__ = [
 
 
 def std_mad(x) -> float:
-    """Corrected median absolute deviation, matching tick."""
+    """Corrected median absolute deviation."""
 
     x = np.asarray(x, dtype=float)
     correction = 1.0 / norm.ppf(3.0 / 4.0)
@@ -42,7 +42,7 @@ def std_mad(x) -> float:
 
 
 def std_iqr(x) -> float:
-    """Corrected inter-quartile distance, matching tick's historical formula."""
+    """Corrected inter-quartile distance."""
 
     return float((2.0**0.5) * erfinv(0.5) * iqr(np.asarray(x, dtype=float)))
 
@@ -53,7 +53,7 @@ def features_normal_cov_toeplitz(
     cov_corr: float = 0.5,
     dtype="float64",
 ) -> np.ndarray:
-    """Generate Gaussian features with Toeplitz covariance, as in tick."""
+    """Generate Gaussian features with Toeplitz covariance."""
 
     covariance = toeplitz(float(cov_corr) ** np.arange(0, int(n_features)))
     features = np.random.multivariate_normal(np.zeros(int(n_features)), covariance, size=int(n_samples))

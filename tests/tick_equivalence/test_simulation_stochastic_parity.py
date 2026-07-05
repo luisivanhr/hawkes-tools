@@ -1,14 +1,7 @@
-"""Source-backed parity checks for tick's remaining simulation tests.
+"""Source-backed parity checks for stochastic simulation behavior.
 
-The assertions in this file are ported from:
-
-- tick/hawkes/simulation/tests/simu_hawkes_test.py
-- tick/hawkes/simulation/tests/simu_inhomogeneous_poisson_test.py
-- tick/hawkes/simulation/tests/simu_point_process_test.py
-- tick/hawkes/simulation/tests/simu_poisson_test.py
-
-These tests preserve tick's stochastic assertions instead of claiming exact
-C++ RNG stream parity.
+These tests preserve stochastic assertions instead of claiming exact C++ RNG
+stream parity.
 """
 
 import sys

@@ -1,4 +1,4 @@
-"""Serialize dense and sparse floating-point arrays without tick's C++ layer."""
+"""Serialize dense and sparse floating-point arrays without a C++ layer."""
 
 from __future__ import annotations
 
@@ -14,10 +14,9 @@ _SUPPORTED_DTYPES = (np.dtype("float32"), np.dtype("float64"))
 def serialize_array(array, filepath):
     """Save a 1d/2d dense or 2d sparse float array to ``filepath``.
 
-    The original tick helper writes a C++ cereal format. hawkes-tools has no C++
-    runtime, so this standalone port writes an ``np.savez`` container to the
-    exact requested path while preserving dtype, shape, sparse structure, and
-    row/column-major sparse orientation.
+    hawkes-tools has no C++ runtime, so this standalone port writes an
+    ``np.savez`` container to the exact requested path while preserving dtype,
+    shape, sparse structure, and row/column-major sparse orientation.
     """
 
     dtype = np.dtype(array.dtype)
@@ -59,8 +58,8 @@ def serialize_array(array, filepath):
 def load_array(filepath, array_type="dense", array_dim=1, dtype="float64", major="row"):
     """Load an array written by :func:`serialize_array`.
 
-    Parameters mirror tick's Python helper. ``array_type`` must be ``"dense"``
-    or ``"sparse"``, ``array_dim`` must match the stored dimensionality, dtype
+    ``array_type`` must be ``"dense"`` or ``"sparse"``, ``array_dim`` must
+    match the stored dimensionality, dtype
     must be ``"float32"``, ``"float64"``, or ``"double"``, and sparse
     ``major="col"`` returns CSC while row-major sparse data returns CSR.
     """

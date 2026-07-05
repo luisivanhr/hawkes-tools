@@ -366,7 +366,7 @@ class ModelHawkesSumExpKernLeastSq(ModelHawkes):
         return np.arange(self.n_baselines, dtype=float) * (self.period_length / self.n_baselines)
 
     def cast_period_length(self, period_length: float | None = None) -> float:
-        """Return tick's C++ sentinel for an unset varying-baseline period."""
+        """Return the internal sentinel for an unset varying-baseline period."""
 
         if period_length is None:
             period_length = self.period_length

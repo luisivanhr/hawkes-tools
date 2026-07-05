@@ -1,9 +1,4 @@
-"""Source-backed parity checks for tick parametric Hawkes learners.
-
-The assertions in this file are ported from:
-- tick/hawkes/inference/tests/hawkes_expkern_test.py
-- tick/hawkes/inference/tests/hawkes_sumexpkern_test.py
-"""
+"""Source-backed parity checks for parametric Hawkes learners."""
 
 import sys
 import unittest

@@ -1,4 +1,4 @@
-"""Simulation helper functions compatible with :mod:`tick.simulation`."""
+"""Simulation helper functions."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def weights_sparse_exp(
     scale: float = 10.0,
     dtype="float64",
 ) -> np.ndarray:
-    """Return tick's sparse exponentially decaying coefficient vector."""
+    """Return a sparse exponentially decaying coefficient vector."""
 
     n_weigths = int(n_weigths)
     nnz = int(nnz)
@@ -46,7 +46,7 @@ def features_normal_cov_uniform(
     n_features: int = 30,
     dtype="float64",
 ) -> np.ndarray:
-    """Generate Gaussian features with tick's random uniform covariance."""
+    """Generate Gaussian features with random uniform covariance."""
 
     n_samples = int(n_samples)
     n_features = int(n_features)
@@ -71,7 +71,7 @@ def features_normal_cov_toeplitz(
     cov_corr: float = 0.5,
     dtype="float64",
 ) -> np.ndarray:
-    """Generate Gaussian features with tick's Toeplitz covariance."""
+    """Generate Gaussian features with Toeplitz covariance."""
 
     n_samples = int(n_samples)
     n_features = int(n_features)

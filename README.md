@@ -11,22 +11,19 @@ from hawkes_tools.hawkes import SimuHawkesExpKernels, HawkesExpKern
 from hawkes_tools.linear_model import LogisticRegression, SimuLogReg
 ```
 
-See [PARITY.md](PARITY.md) for the current short tick Hawkes API parity matrix.
+See [PARITY.md](PARITY.md) for the current API support matrix.
 
-The implementation intentionally avoids `tick`'s C++ extensions. It uses
-NumPy/SciPy for numerical work, mandatory Numba JIT helpers for hot loops, and
-Python parallelism for repeated simulations.
+The implementation uses NumPy/SciPy for numerical work, mandatory Numba JIT
+helpers for hot loops, and Python parallelism for repeated simulations.
 
 ## Datasets
 
-`hawkes_tools.datasets` includes standalone vendored loaders and metadata for every public
-payload blob currently published in `X-DataInitiative/tick-datasets` tree
-`9d959b6e53e17145e93e9849ff1f9f6d2de8ae51`: Hawkes Bund,
-Adult/Covtype/IJCNN/KDD/Reuters binary SVMlight files, and Abalone regression
-data. It loads from package data or an explicit local `data_home` without
-importing `tick` or downloading from the original tick dataset repository at
-runtime. The URL reputation tarball used by tick is represented separately as a
-managed external dataset because it is not part of `tick-datasets`.
+`hawkes_tools.datasets` includes standalone vendored loaders and metadata for
+the bundled Hawkes Bund, Adult, Covtype, IJCNN, KDD, Reuters, and Abalone
+payloads. It loads from package data or an explicit local `data_home` without
+depending on any external Hawkes package at runtime. The URL reputation tarball
+is represented separately as a managed external dataset because it is not part
+of the bundled package data.
 Set `HAWKES_TOOLS_DATASETS` or pass `data_home=` to control the local cache for
 managed external datasets.
 
@@ -36,9 +33,8 @@ from hawkes_tools.datasets import fetch_hawkes_bund_data
 timestamps = fetch_hawkes_bund_data()
 ```
 
-Use `tick_dataset_metadata(path)` and `external_dataset_metadata(path)` to
-inspect source, format, shape, file-size, and checksum metadata
-programmatically.
+Use the dataset metadata helpers to inspect source, format, shape, file-size,
+and checksum metadata programmatically.
 
 Vendored payload shapes:
 
@@ -83,8 +79,7 @@ Numba cache files (`.nbc` / `.nbi`) may be written near `__pycache__`.
 
 ## Current API status
 
-`hawkes_tools.hawkes` exports the Hawkes-focused public names from tick's Hawkes
-surface:
+`hawkes_tools.hawkes` exports the Hawkes-focused public surface:
 
 - Kernels: `HawkesKernel0`, `HawkesKernelExp`, `HawkesKernelSumExp`,
   `HawkesKernelPowerLaw`, and `HawkesKernelTimeFunc`.
@@ -100,16 +95,16 @@ surface:
   logistic, Poisson, and hinge-family model classes, plus learners and
   simulators for the linear/logistic/Poisson families. Model and learner
   methods validate fit state, feature shapes, coefficient lengths, finite
-  numeric inputs, supported solver settings, and tick-style learner penalties
+  numeric inputs, supported solver settings, and learner penalties
   `none`, `l1`, `l2`, `elasticnet`, `tv`, and `binarsity`. `binarsity`
   requires explicit `blocks_start` and `blocks_length` block metadata.
 - Robust utilities: `hawkes_tools.robust` exports the robust linear-regression
   learner, sample-intercept linear model, robust scale estimators, and the
   standalone first-order loss models `ModelHuber`, `ModelModifiedHuber`,
   `ModelEpsilonInsensitive`, and `ModelAbsoluteRegression`.
-- Base model protocols are available from `hawkes_tools.base_model` for
-  tick-style model counters, fit guards, feature/label storage, and Lipschitz
-  or second-order abstract interfaces.
+- Base model protocols are available from `hawkes_tools.base_model` for model
+  counters, fit guards, feature/label storage, and Lipschitz or second-order
+  abstract interfaces.
 - Base utilities are available from `hawkes_tools.base`, including
   `Base`, `BaseEstimator`, `TimeFunction`, `History`, `actual_kwargs`, and a
   small standalone `ThreadPool`.
@@ -117,13 +112,13 @@ surface:
   `features_normal_cov_uniform`, `features_normal_cov_toeplitz`,
   `weights_sparse_exp`, and `weights_sparse_gauss`.
 - Array and random helpers are available from `hawkes_tools.array` and
-  `hawkes_tools.random`; array serialization uses a standalone NumPy container
-  rather than tick's C++ cereal format, and random helpers provide
-  hawkes-tools reproducibility without matching tick's compiled RNG bitstream.
+  `hawkes_tools.random`; array serialization uses a standalone NumPy container,
+  and random helpers provide hawkes-tools reproducibility without claiming
+  compiled RNG bitstream parity.
 - Optimizer compatibility: `hawkes_tools.prox` and `hawkes_tools.solver` expose
-  pure-Python tick-style proximal operators and solver flows for compatible
-  Hawkes or GLM models, with explicit validation for solver options, starting
-  vectors, and malformed model/prox inputs.
+  pure-Python proximal operators and solver flows for compatible Hawkes or GLM
+  models, with explicit validation for solver options, starting vectors, and
+  malformed model/prox inputs.
 - Preprocessing helpers are available from `hawkes_tools.preprocessing`,
   including `FeaturesBinarizer` and the longitudinal product, lagger, and
   sample-filter transforms.
@@ -138,20 +133,20 @@ surface:
   objective when `C_tv` or `C_group_l1` are set.
 - Hawkes plotting helpers are available from `hawkes_tools.plot` and
   `hawkes_tools.hawkes.plot`.
-- Generic tick-style stem plots are available as `hawkes_tools.plot.stems`.
+- Generic stem plots are available as `hawkes_tools.plot.stems`.
 - Vendored dataset loaders are available from `hawkes_tools.datasets`.
 
-This is a standalone production API, not a drop-in `tick` import replacement.
-Intentional exclusions include exact compiled attribute semantics and compiled
-backend internals. TensorFlow is not a supported cumulant backend; use the
-PyTorch-backed cumulant classes. See [PARITY.md](PARITY.md) for the more
-detailed test-backed status and documented exclusions.
+This is a standalone production API. Intentional exclusions include exact
+compiled attribute semantics and compiled backend internals. TensorFlow is not
+a supported cumulant backend; use the PyTorch-backed cumulant classes. See
+[PARITY.md](PARITY.md) for the more detailed test-backed status and documented
+exclusions.
 
 ## Examples
 
 The scripts in `examples/` prepend the local `src/` directory to `sys.path`, so
 they run against this checkout without installing `hawkes-tools` and without
-depending on `tick`.
+depending on another Hawkes package.
 
 ```powershell
 & "C:\Users\luisi\Documents\Programming\Python\.misc314\Scripts\python.exe" examples\plot_hawkes_simulation.py
@@ -165,8 +160,7 @@ The notebook `examples/hawkes_time_rescaling_gof.ipynb` demonstrates
 time-rescaling goodness-of-fit diagnostics for univariate Hawkes processes with
 exponential, sum-exponential, power-law, and time-function kernels.
 
-The notebook `examples/tick_gallery_reproduction.ipynb` is the restored full
-gallery sanity notebook. It covers the 25 crawled tick gallery rows with
+The restored full gallery sanity notebook covers 25 example records with
 standalone replacements, including vendored finance/GLM datasets and the
 original-scale Hawkes EM example. The mixed exponential/time-function
 simulation path uses exact recursive exponential updates plus JIT-backed
@@ -184,21 +178,21 @@ Use the requested environment:
 The current stabilization baseline is:
 
 - `unittest discover -s tests`: 254 tests run, OK, with no skips.
-- `unittest discover -s tests\tick_equivalence`: 171 tick Hawkes tests from the
-  frozen equivalence manifest; current classification is 171 pass, 0 unresolved
-  equivalence gaps, and 0 optional backend cases.
-- Tick-equivalence status: 171 pass, 0 xfail, 0 optional skips.
-- `tests\tick_equivalence\report_equivalence.py`: prints the ledger counts
-  by `pass`, `xfail_equivalence_gap`, and `skip_optional_backend`.
-- Full tick gallery notebook execution: 25 recorded examples, OK.
+- Equivalence ledger tests: 171 source-backed Hawkes cases from the frozen
+  manifest; current classification is 171 pass, 0 unresolved equivalence gaps,
+  and 0 optional backend cases.
+- Equivalence status: 171 pass, 0 xfail, 0 optional skips.
+- The ledger report script prints the counts by `pass`,
+  `xfail_equivalence_gap`, and `skip_optional_backend`.
+- Full gallery notebook execution: 25 recorded examples, OK.
 - All scripts in `examples/`: smoke-tested successfully from this checkout.
 - Clean-directory import: verified with `PYTHONPATH` set to the absolute
   `hawkes-tools/src` directory.
 - Local isolated install: `pip install . --no-deps --no-build-isolation
   --target %TEMP%\hawkes-tools-install-check-20260706-standalone --upgrade`
   builds `hawkes_tools-0.1.0-py3-none-any.whl`; importing from that temp target
-  loads `hawkes_tools`, does not load `tick`, excludes `our_hawkes`, and exposes
-  11 vendored dataset entries from installed package data.
+  loads `hawkes_tools`, excludes `our_hawkes`, and exposes 11 vendored dataset
+  entries from installed package data.
 - Public export check: every name listed in `hawkes_tools.hawkes.__all__` imports
   from the local source tree.
 
@@ -207,4 +201,3 @@ Install editable dependencies when needed:
 ```powershell
 & "C:\Users\luisi\Documents\Programming\Python\.misc314\Scripts\python.exe" -m pip install -e ".[dev]"
 ```
-

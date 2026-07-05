@@ -322,10 +322,9 @@ def _validate_positive_int(name, value) -> int:
 class BatchConvSCCS(ConvSCCS):
     """Batch-oriented ConvSCCS API using the standalone sequential backend.
 
-    The original tick class used compiled multi-solve support to parallelize
-    cross-validation and bootstrap work. In hawkes-tools, performance backend
-    parity is intentionally out of scope, so this class keeps the public
-    construction surface and validation while reusing ``ConvSCCS.fit`` and
+    Compiled multi-solve support for cross-validation and bootstrap work is
+    intentionally out of scope, so this class keeps the public construction
+    surface and validation while reusing ``ConvSCCS.fit`` and
     ``ConvSCCS.score``.
     """
 
@@ -338,7 +337,7 @@ class StreamConvSCCS(ConvSCCS):
     """Thread-oriented ConvSCCS API using the standalone sequential backend.
 
     The ``threads`` attribute is validated and stored for API continuity, but
-    the pure-Python implementation does not launch tick's compiled threadpool.
+    the pure-Python implementation does not launch a compiled threadpool.
     """
 
     def __init__(self, *args, threads: int = 1, **kwargs):

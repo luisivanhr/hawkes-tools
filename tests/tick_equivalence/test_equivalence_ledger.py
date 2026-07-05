@@ -110,7 +110,7 @@ def classify_tick_test(test_id):
             "test_simu_hawkes_force_simulation",
         }:
             return "pass", "generic Hawkes deterministic behavior is covered"
-        return "xfail_equivalence_gap", "generic Hawkes simulation path still needs tick-level audit"
+        return "xfail_equivalence_gap", "generic Hawkes simulation path still needs reference-level audit"
 
     if filename in {"hawkes_expkern_test.py", "hawkes_sumexpkern_test.py"}:
         return "pass", "parametric learner solver/settings behavior is covered by source-backed tests"

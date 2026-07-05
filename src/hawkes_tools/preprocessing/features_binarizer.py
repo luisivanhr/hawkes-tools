@@ -1,4 +1,4 @@
-"""Feature binarization compatible with tick.preprocessing.FeaturesBinarizer."""
+"""Feature binarization utilities."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _sorted_unique(values: np.ndarray) -> np.ndarray:
 
 
 class _SimpleOneHotEncoder:
-    """Small one-hot encoder with the attributes tick relies on."""
+    """Small one-hot encoder with the attributes used internally."""
 
     def fit(self, X):
         X = np.asarray(X)

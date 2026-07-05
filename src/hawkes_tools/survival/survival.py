@@ -1,4 +1,4 @@
-"""Survival analysis helper functions compatible with :mod:`tick.survival`."""
+"""Survival analysis helper functions."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import numpy as np
 
 
 def kaplan_meier(timestamps, event_observed):
-    """Compute tick's Kaplan-Meier survival function estimate."""
+    """Compute the Kaplan-Meier survival function estimate."""
 
     if isinstance(timestamps, list):
         timestamps = np.array(timestamps)
@@ -32,7 +32,7 @@ def kaplan_meier(timestamps, event_observed):
 
 
 def nelson_aalen(timestamps, event_observed):
-    """Compute tick's Nelson-Aalen cumulative hazard estimate."""
+    """Compute the Nelson-Aalen cumulative hazard estimate."""
 
     if isinstance(timestamps, list):
         timestamps = np.array(timestamps)

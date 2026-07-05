@@ -779,7 +779,7 @@ class HawkesSumExpKern(_ParametricHawkesLearner):
 
 
 class _HawkesEMPythonBackend:
-    """Small compatibility facade for tick's private C++ HawkesEM backend."""
+    """Small compatibility facade for the private HawkesEM backend."""
 
     def __init__(self, owner: "HawkesEM"):
         self.owner = owner
@@ -1462,7 +1462,7 @@ def _adm4_em_update(g, sizes, end_times, kernel_integral, rho, mu, adjacency, z1
 
 
 class _ADM4PythonBackend:
-    """NumPy port of tick's private C++ HawkesADM4 update backend."""
+    """NumPy port of the private C++ HawkesADM4 update backend."""
 
     def __init__(self, decay, rho, n_threads=1, approx=0):
         self._decay = None
@@ -2145,7 +2145,7 @@ def _sumgaussians_em_inner_loop(
 
 
 class _SumGaussiansPythonBackend:
-    """NumPy port of tick's private C++ HawkesSumGaussians backend."""
+    """NumPy port of the private C++ HawkesSumGaussians backend."""
 
     def __init__(
         self,
@@ -4064,7 +4064,7 @@ def _conditional_law_compute_M(
 
 
 class HawkesConditionalLaw(_LearnerBase):
-    """Empirical conditional-law estimator with tick-compatible outputs."""
+    """Empirical conditional-law estimator with established output semantics."""
 
     _UNSET = object()
 
@@ -5333,7 +5333,7 @@ def _cumulant_compute_E(events, sizes, i, j, k, end_time, support, mean_intensit
 
 
 class _HawkesCumulantComputer:
-    """Pure-Python port of tick's Hawkes cumulant C++ helper."""
+    """Pure-Python port of the Hawkes cumulant C++ helper."""
 
     def __init__(self, integration_support=100.0):
         self._integration_support = None

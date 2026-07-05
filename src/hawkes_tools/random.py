@@ -1,4 +1,4 @@
-"""Standalone random-sampling helpers matching tick.random's public shape."""
+"""Standalone random-sampling helpers."""
 
 from __future__ import annotations
 
@@ -102,8 +102,8 @@ def test_discrete(probabilities, size, seed=None):
 def test_uniform_threaded(size, wait_time=0):
     """Draw unseeded uniform samples after an optional delay.
 
-    This mirrors tick's thread-safety test helper: every call creates an
-    independent generator seeded from operating-system entropy.
+    Every call creates an independent generator seeded from operating-system
+    entropy.
     """
 
     wait_time = float(wait_time)
