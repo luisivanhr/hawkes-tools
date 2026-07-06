@@ -32,7 +32,13 @@ class GalleryNotebookTest(unittest.TestCase):
         self.assertGreaterEqual(len(self.notebook["cells"]), 30)
         self.assertGreaterEqual(len(re.findall(r"^## ", self.markdown, flags=re.MULTILINE)), 15)
         self.assertGreaterEqual(self.code.count("record("), 25)
-        self.assertIn("## Crawled Gallery Manifest", self.markdown)
+        self.assertIn("## Gallery", self.markdown)
+        self.assertIn("| # | Example | API area | Description |", self.markdown)
+        self.assertIn("RKHS Hawkes estimator with alpha/Erlang kernel", self.markdown)
+        self.assertIn("overlays true and RKHS-estimated kernels", self.markdown)
+        self.assertNotIn("## Crawled Gallery Manifest", self.markdown)
+        self.assertNotIn("Notebook handling", self.markdown)
+        self.assertNotIn("Runnable with", self.markdown)
 
     def test_notebook_does_not_import_original_package_or_scikit(self):
         original_package = "".join(chr(code) for code in (116, 105, 99, 107))
@@ -54,6 +60,13 @@ class GalleryNotebookTest(unittest.TestCase):
         self.assertIn("weights_sparse_gauss", self.code)
         self.assertIn("plot_history", self.code)
         self.assertIn("range=(0, n_features)", self.code)
+        self.assertIn("## Standalone RKHS Hawkes Estimator With Alpha Kernel", self.markdown)
+        self.assertIn("RKHSHawkes", self.code)
+        self.assertIn("alpha_erlang_kernel_values", self.code)
+        self.assertIn('label="true alpha/Erlang kernel"', self.code)
+        self.assertIn('label="RKHS estimate"', self.code)
+        self.assertIn('plot_basis_functions(3, layout="grid"', self.code)
+        self.assertIn("rkhs_alpha_erlang_kernel", self.code)
         self.assertNotIn("QuadraticModel", self.code)
         self.assertNotIn("Solver/Prox And GLM Compatibility", self.markdown)
 

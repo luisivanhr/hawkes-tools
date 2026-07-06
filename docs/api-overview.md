@@ -22,6 +22,7 @@ from hawkes_tools.hawkes import (
     HawkesKernelTimeFunc,
     HawkesSumExpKern,
     HawkesSumGaussians,
+    RKHSHawkes,
     SimuHawkes,
     SimuHawkesExpKernels,
     SimuHawkesMulti,
@@ -30,8 +31,10 @@ from hawkes_tools.hawkes import (
 ```
 
 Core coverage includes kernels, simulation, parametric learners,
-non-parametric learners, cumulant matching, conditional-law estimation, model
-losses, gradients, Hessian helpers, and plotting helpers.
+non-parametric learners including the TimeFunction-backed univariate RKHS
+inversion estimator with basis recovery and plotting, cumulant matching,
+conditional-law estimation, model losses, gradients, Hessian helpers, and
+plotting helpers.
 
 ## Linear Models and GLM Utilities
 

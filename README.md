@@ -91,8 +91,9 @@ Numba cache files (`.nbc` / `.nbi`) may be written near `__pycache__`.
   and least-squares models, `HawkesExpKern`, `HawkesSumExpKern`, and `HawkesADM4`.
 - Non-parametric and cumulant learners: `HawkesEM`, `HawkesBasisKernels`,
   `HawkesSumGaussians`, `HawkesConditionalLaw`, `HawkesCumulantMatching`,
-  PyTorch-backed `HawkesCumulantMatchingPyT`, and the legacy
-  `HawkesCumulantMatchingTf` class name backed by the same PyTorch optimizer.
+  `RKHSHawkes` with RKHS basis recovery and plotting, PyTorch-backed
+  `HawkesCumulantMatchingPyT`, and the legacy `HawkesCumulantMatchingTf` class
+  name backed by the same PyTorch optimizer.
 - GLM utilities: `hawkes_tools.linear_model` exports JIT-backed linear,
   logistic, Poisson, and hinge-family model classes, plus learners and
   simulators for the linear/logistic/Poisson families. Model and learner
@@ -181,7 +182,7 @@ Use the requested environment:
 
 The current stabilization baseline is:
 
-- `unittest discover -s tests`: 257 tests run, OK, with no skips.
+- `unittest discover -s tests`: 260 tests run, OK, with no skips.
 - Equivalence ledger tests: 171 source-backed Hawkes cases from the frozen
   manifest; current classification is 171 pass, 0 unresolved equivalence gaps,
   and 0 optional backend cases.

@@ -13,7 +13,7 @@ Using the maintainer workstation interpreter:
 Expected current baseline:
 
 ```text
-Ran 257 tests
+Ran 260 tests
 OK
 ```
 

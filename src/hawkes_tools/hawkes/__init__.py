@@ -28,6 +28,7 @@ from .models import (
     ModelHawkesSumExpKernLeastSq,
     ModelHawkesSumExpKernLogLik,
 )
+from .rkhs_hawkes import RKHSHawkes
 from .simulation import (
     SimuHawkes,
     SimuHawkesExpKernels,
@@ -68,5 +69,6 @@ __all__ = [
     "HawkesCumulantMatching",
     "HawkesCumulantMatchingPyT",
     "HawkesCumulantMatchingTf",
+    "RKHSHawkes",
 ]
 
