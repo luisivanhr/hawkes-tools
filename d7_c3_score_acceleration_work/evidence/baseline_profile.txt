@@ -1,0 +1,63 @@
+         25171589 function calls (25171583 primitive calls) in 18.742 seconds
+
+   Ordered by: cumulative time
+   List reduced from 236 to 55 due to restriction <55>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   18.742   18.742 replay_support.py:144(evaluate)
+        1    0.008    0.008   18.742   18.742 vector_score.py:122(evaluate_archive)
+      128    0.000    0.000   16.182    0.126 d7_blind_core.py:360(trace_log_density)
+      128    0.297    0.002   16.167    0.126 stationary_boundary_score.py:251(renewal_trace_log_density)
+   169573    0.332    0.000    8.772    0.000 fitted_renewal_quantiles.py:297(cumulative_hazard)
+   162014    2.355    0.000    8.228    0.000 fitted_renewal_quantiles.py:304(hazard)
+   169617    1.232    0.000    6.792    0.000 fitted_renewal_quantiles.py:259(base_cumulative_hazard)
+  2032648    0.859    0.000    4.936    0.000 fromnumeric.py:2436(any)
+   501204    1.533    0.000    4.288    0.000 fitted_renewal_quantiles.py:45(_nonnegative_array)
+  2032648    1.541    0.000    4.077    0.000 fromnumeric.py:86(_wrapreduction_any_all)
+   169618    0.413    0.000    3.113    0.000 fitted_renewal_quantiles.py:247(_body_cumulative_hazard)
+   173050    0.603    0.000    2.630    0.000 numerical_completion_recovery.py:100(integral_basis)
+   162014    0.404    0.000    2.627    0.000 fitted_renewal_quantiles.py:253(_body_hazard_coordinate)
+   341538    0.767    0.000    2.551    0.000 _bsplines.py:509(__call__)
+  2043975    2.344    0.000    2.344    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   166967    0.320    0.000    2.203    0.000 numerical_completion_recovery.py:90(basis)
+   341540    0.280    0.000    1.131    0.000 fromnumeric.py:2207(clip)
+       64    0.279    0.004    0.932    0.015 vector_score.py:68(conditional_batch)
+   341566    0.147    0.000    0.851    0.000 fromnumeric.py:48(_wrapfunc)
+       64    0.000    0.000    0.846    0.013 d7_blind_core.py:454(_window_reference_log_density)
+       64    0.020    0.000    0.845    0.013 stationary_window_likelihood.py:170(boundary_forward_log_density)
+   341538    0.247    0.000    0.751    0.000 _aliases.py:70(asarray)
+  2368998    0.722    0.000    0.722    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+   341540    0.148    0.000    0.665    0.000 {method 'clip' of 'numpy.ndarray' objects}
+  2900400    0.555    0.000    0.555    0.000 {built-in method numpy.asarray}
+     2279    0.029    0.000    0.551    0.000 vector_score.py:9(_state_quantities)
+   341538    0.518    0.000    0.518    0.000 {built-in method scipy.interpolate._dierckx.evaluate_spline}
+   341540    0.517    0.000    0.517    0.000 _methods.py:96(_clip)
+       64    0.050    0.001    0.473    0.007 d7_blind_core.py:494(conditional_log_density_batch)
+   501204    0.245    0.000    0.464    0.000 fitted_renewal_quantiles.py:28(_restore_shape)
+     3430    0.046    0.000    0.462    0.000 stationary_analytic_score.py:268(cumulative_hazard_and_gradient)
+     3431    0.144    0.000    0.384    0.000 stationary_analytic_score.py:83(_base_cumulative_direct)
+   341627    0.223    0.000    0.343    0.000 {built-in method numpy.array}
+  2043944    0.254    0.000    0.254    0.000 {method 'items' of 'dict' objects}
+     1521    0.025    0.000    0.242    0.000 stationary_analytic_score.py:280(log_hazard_and_gradient)
+      128    0.001    0.000    0.212    0.002 stationary_analytic_score.py:558(boundary_trace_score)
+     1521    0.090    0.000    0.203    0.000 stationary_analytic_score.py:156(_base_log_hazard_direct)
+      128    0.002    0.000    0.186    0.001 stationary_analytic_score.py:302(renewal_trace_score)
+  2032648    0.181    0.000    0.181    0.000 fromnumeric.py:2431(_any_dispatcher)
+   341538    0.113    0.000    0.161    0.000 _helpers.py:683(_check_device)
+   341538    0.093    0.000    0.120    0.000 enum.py:186(__get__)
+   341550    0.075    0.000    0.115    0.000 numerical_completion_recovery.py:87(__getattr__)
+   341563    0.096    0.000    0.096    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+   341538    0.092    0.000    0.092    0.000 _bsplines.py:577(_ensure_c_contiguous)
+    11229    0.009    0.000    0.085    0.000 fromnumeric.py:2304(sum)
+   683119    0.080    0.000    0.080    0.000 {built-in method builtins.getattr}
+    11296    0.011    0.000    0.074    0.000 fromnumeric.py:66(_wrapreduction)
+   342438    0.066    0.000    0.066    0.000 {built-in method numpy.ascontiguousarray}
+   341613    0.048    0.000    0.048    0.000 {method 'get' of 'dict' objects}
+   503594    0.047    0.000    0.047    0.000 multiarray.py:115(empty_like)
+       64    0.034    0.001    0.044    0.001 vector_score.py:35(kernel_window_batch)
+   341540    0.037    0.000    0.037    0.000 fromnumeric.py:2202(_clip_dispatcher)
+   160953    0.036    0.000    0.036    0.000 {built-in method math.log}
+     1521    0.003    0.000    0.036    0.000 numerical_completion_recovery.py:95(basis_derivative)
+        1    0.001    0.001    0.031    0.031 d7_fixed_archive_score_adapter.py:72(trace_archive_sha256)
+
+

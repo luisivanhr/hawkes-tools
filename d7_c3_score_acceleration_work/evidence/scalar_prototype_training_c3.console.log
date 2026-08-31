@@ -1,0 +1,258 @@
+{
+  "status": "EXPERIMENTAL_NOT_CERTIFIED",
+  "source_sha256": "ef70ad73707e2996881475a06d2461b837f43856400a605c1c18021964c0fdc1",
+  "raw": "training_orthogonal_c3_S03_R0_C00_A0.npz",
+  "raw_sha256": "5576650c4b78eb867f1de12ceb47201558f6a116c1571abd95638d8d959fd8b4",
+  "trace_count": 2,
+  "gap_count": 2430,
+  "boundary_count": 29,
+  "point": [
+    0.0,
+    0.0,
+    0.256732371276628,
+    0.3692147272533754,
+    0.44483199115039723,
+    0.5240378766821502,
+    0.5878728266488695,
+    0.6452639048001704,
+    0.6933133947528205,
+    0.6489261106521041,
+    0.37913350082270564,
+    0.6272762666955661,
+    0.4998946149624939,
+    0.0004401106123981989,
+    0.00025175522980462665,
+    0.4769217276621928,
+    0.8827817499072322,
+    0.5796873460185735,
+    0.0769185974551898,
+    0.7515309004698031,
+    0.6437739060884422,
+    0.42261674692277773,
+    0.6134576122968664,
+    0.16745179740449243,
+    0.5402181234089439
+  ],
+  "results": [
+    {
+      "mode": "vector",
+      "checks": {
+        "saved_gap_h": {
+          "exact": true,
+          "shape": [
+            2430
+          ],
+          "dtype": "float64",
+          "sha256": "55a44aac5257c1735c188dd2226d1e8844f8e1855f0a7a3e3bf9ea1b693b3594"
+        },
+        "saved_gap_H": {
+          "exact": true,
+          "shape": [
+            2430
+          ],
+          "dtype": "float64",
+          "sha256": "34b478af6ba9175ec61b921f1af20d76d4449466943ab6906875b0d72dcc123b"
+        },
+        "trace_renewal_log_density": {
+          "exact": true,
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "sha256": "a9b47cf9da5ab1a5a3d73cef484eaa9115aff6f1d13e387338b188832c67bb1c"
+        },
+        "boundary_h": {
+          "exact": true,
+          "shape": [
+            29
+          ],
+          "dtype": "float64",
+          "sha256": "064fab3ca82bec66e122f402a6c20fff2e791892d7beb57351c8412189238da3"
+        },
+        "boundary_H": {
+          "exact": true,
+          "shape": [
+            29
+          ],
+          "dtype": "float64",
+          "sha256": "1d56efcc80e88f8ec3472e9c853ed784540119d5b7653f70bbd9ccd7d7398fa3"
+        }
+      },
+      "timings_seconds": {
+        "reference": [
+          0.12095640000188723,
+          0.12327099998947233,
+          0.12229760002810508
+        ],
+        "prototype": [
+          0.008513600041624159,
+          0.008700699952896684,
+          0.008537199988495559
+        ]
+      },
+      "median_speedup": 14.325258889672162
+    },
+    {
+      "mode": "one_element",
+      "checks": {
+        "saved_gap_h": {
+          "exact": true,
+          "shape": [
+            2430
+          ],
+          "dtype": "float64",
+          "sha256": "55a44aac5257c1735c188dd2226d1e8844f8e1855f0a7a3e3bf9ea1b693b3594"
+        },
+        "saved_gap_H": {
+          "exact": true,
+          "shape": [
+            2430
+          ],
+          "dtype": "float64",
+          "sha256": "34b478af6ba9175ec61b921f1af20d76d4449466943ab6906875b0d72dcc123b"
+        },
+        "trace_renewal_log_density": {
+          "exact": true,
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "sha256": "a9b47cf9da5ab1a5a3d73cef484eaa9115aff6f1d13e387338b188832c67bb1c"
+        },
+        "boundary_h": {
+          "exact": true,
+          "shape": [
+            29
+          ],
+          "dtype": "float64",
+          "sha256": "064fab3ca82bec66e122f402a6c20fff2e791892d7beb57351c8412189238da3"
+        },
+        "boundary_H": {
+          "exact": true,
+          "shape": [
+            29
+          ],
+          "dtype": "float64",
+          "sha256": "1d56efcc80e88f8ec3472e9c853ed784540119d5b7653f70bbd9ccd7d7398fa3"
+        }
+      },
+      "timings_seconds": {
+        "reference": [
+          0.19464050000533462,
+          0.16583789995638654,
+          0.19440320000285283
+        ],
+        "prototype": [
+          0.017676000017672777,
+          0.020252500020433217,
+          0.022497099998872727
+        ]
+      },
+      "median_speedup": 9.598972956756693
+    }
+  ],
+  "edge_checks": [
+    {
+      "fixture": "empty",
+      "expected": {
+        "value_bytes": "60bca74e7f8014c0"
+      },
+      "actual": {
+        "value_bytes": "60bca74e7f8014c0"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "zero",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "negative_zero",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "negative",
+      "expected": {
+        "exception": "ValueError",
+        "message": "ages must be nonnegative and must not contain NaN"
+      },
+      "actual": {
+        "exception": "ValueError",
+        "message": "ages must be nonnegative and must not contain NaN"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "nan",
+      "expected": {
+        "exception": "ValueError",
+        "message": "ages must be nonnegative and must not contain NaN"
+      },
+      "actual": {
+        "exception": "ValueError",
+        "message": "ages must be nonnegative and must not contain NaN"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "infinity",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "short_circuit_zero_nan",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "short_circuit_zero_negative",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    },
+    {
+      "fixture": "smallest_subnormal",
+      "expected": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "actual": {
+        "value_bytes": "000000000000f0ff"
+      },
+      "exact": true
+    }
+  ],
+  "runtime": {
+    "python": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "no_sampler": true,
+  "no_full_archive_evaluation": true,
+  "rationale": "One-element np.power and original one-row BLAS products, batched independent BSpline query points; untouched sequential math.log and scalar addition."
+}

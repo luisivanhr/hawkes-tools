@@ -1,0 +1,47 @@
+{
+  "after_sha256": "d8ffba11cf41612b663c6160f4c1dc8135cb9584c94468711e73d7eb0652d275",
+  "before_path": "evidence\\repair_001\\original_exact_trace_density.py",
+  "before_sha256": "9fac4b8241c5b4ec902456ce17464bc2ce524f427a0238c9c84d7ef88a65136d",
+  "changed_runtime_source": "exact_trace_density.py",
+  "complete_replay_count": 1,
+  "complete_replay_under_repaired_hash": false,
+  "default_path_argument": "Under the observed context_aware_warnings=0 policy with no error filters, the added condition is false; every original floating-point operation remains unchanged. With any error filter, evaluation delegates to the original reference before any batched gap work.",
+  "evidence": {
+    "benchmark": {
+      "path": "evidence/repair_001/benchmark.json",
+      "sha256": "5dae02c6f2e678b72e0f9457129a105ba2785a3a11578a6685390a05ed89898b"
+    },
+    "edge_fixtures": {
+      "path": "evidence/repair_001/edge_fixtures.json",
+      "sha256": "1274f88c635fbead8af00cd5ffb60df0b9528af4b513bee79b9a99c0aea5f17c"
+    },
+    "full_replay": {
+      "path": "evidence/full_replay/EXACTNESS_REPLAY.json",
+      "sha256": "9112587ae70e98a7bccd07c73d8b2d21ee6398356495443c713399e3633aac70"
+    },
+    "history": {
+      "path": "evidence/history_replay.json",
+      "sha256": "f5d282b39630a2adc0d4cd5c74c176a5d9ac2c9b5bf4a1e11b8552e54ee4e138"
+    },
+    "original_reconciliation": {
+      "path": "evidence/replay_reconciliation.json",
+      "sha256": "6951d5aafefefc574ee3c70c9d678712eeaa671919863d21f3aac0317ed63597"
+    },
+    "preservation": {
+      "path": "evidence/source_preservation_after_replay.json",
+      "sha256": "18bd9c79542d5eb50cb0d2bb0ffe8aa5776b9865825d6d749aad11874e4abb66"
+    },
+    "warning_policy": {
+      "path": "evidence/repair_001/warning_policy_recheck.json",
+      "sha256": "be4560ee261580639b9736773bcee999160eb59bb5437e2838f404d3ea1b9590"
+    }
+  },
+  "exact_source_delta_verified": true,
+  "focused_recheck": "96 warning-policy/error-mode cases, 135 prior deterministic cases, two complete representative archives in two paired timing runs each; all exact.",
+  "original_candidate_freeze_sha256": "f64c4e83db5cbc3f22dc8db87f82cb69d7b34a19047ef379ec7882427c2b082d",
+  "reason": "Warning-as-error policy could expose later vector-division overflow before earlier scalar underflow. Any error filter now selects the original reference before batching.",
+  "repair_number": 1,
+  "scope": "Final candidate certification uses original full corpus replay plus the unchanged-default-path argument and focused repaired-branch tests. It does not claim a second 624-archive replay under the repaired hash.",
+  "source_diff_sha256": "3cee2929c01fb5633add7ccb3debaabe4101fa655730ba8dde7dfba7adf80d72",
+  "status": "FOCUSED_REPAIR_RECHECK_PASSED"
+}

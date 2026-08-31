@@ -1,0 +1,3 @@
+# Preserve certified source/evidence bytes through checkout on every platform.
+* -text
+*.npz binary

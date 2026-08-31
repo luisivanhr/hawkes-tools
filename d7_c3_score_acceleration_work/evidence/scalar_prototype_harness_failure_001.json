@@ -1,0 +1,7 @@
+{
+  "status": "TEST_HARNESS_FAILURE_NOT_EVALUATOR_MISMATCH",
+  "command_output": "dataclasses.replace(trace, internal_gaps=edge_gaps) raised ValueError: internal gaps must join consecutive retained roots",
+  "cause": "Frozen FiniteRootTrace validates the gap/root structure at construction; deliberately invalid gap fixtures cannot be constructed with dataclasses.replace.",
+  "repair": "Use a SimpleNamespace containing only age, internal_gaps, crossing_distance for the deliberately invalid test inputs. Real saved trace evaluations remain untouched.",
+  "new_samples": 0
+}

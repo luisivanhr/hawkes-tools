@@ -1,0 +1,170 @@
+{
+  "boundary_count": 29,
+  "gap_count": 2549,
+  "no_full_archive_evaluation": true,
+  "no_sampler": true,
+  "point": [
+    0.0,
+    0.0,
+    0.2568069115971282,
+    0.3695170866644169,
+    0.4456723536621924,
+    0.525672097614933,
+    0.5893895942266046,
+    0.6469525600503543,
+    0.6956729791543572,
+    0.6478197742593126,
+    0.3767656873107992,
+    0.611580628281668,
+    0.48234886645640696,
+    0.0,
+    0.0,
+    0.472287418202449,
+    0.8813370193270844,
+    0.5796846219304274,
+    0.054012409009829176,
+    0.7515309004790955,
+    0.6229510353086146,
+    0.4166666666666667,
+    0.611111111111111,
+    0.16666666666666666,
+    0.5412844036697247
+  ],
+  "rationale": "One-element np.power and original one-row BLAS products, batched independent BSpline query points; untouched sequential math.log and scalar addition.",
+  "raw": "training_shared_S00_R0_C00_A0.npz",
+  "raw_sha256": "6743c81d1863e272ae24a7dea51a57e98ea4683a456aff722ba607cbd1c09dce",
+  "results": [
+    {
+      "checks": {
+        "boundary_H": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "6db198b0c9e6cbebf4fab7446d95fabcc4f3201b0fc3929c26510f51770ede7e",
+          "shape": [
+            29
+          ]
+        },
+        "boundary_h": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "ff2363ac424d991e1e6f184e8c9bc6c0629cc9cdad32ec66e7731e37d83faa43",
+          "shape": [
+            29
+          ]
+        },
+        "saved_gap_H": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "3cac8ef87b6b42cb6995838699fcd80fa1086e0b16891849ec8afc289b031766",
+          "shape": [
+            2549
+          ]
+        },
+        "saved_gap_h": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "a8cca11cdfaf0340f6b1b44008958b8654989a7da02495da786fa48146e7f280",
+          "shape": [
+            2549
+          ]
+        },
+        "trace_renewal_log_density": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "f11565260a8dea253568d4207a938e7d8b5007091b26e3f8b6041c3e8cdbb606",
+          "shape": [
+            2
+          ]
+        }
+      },
+      "median_speedup": 14.365107591622689,
+      "mode": "vector",
+      "timings_seconds": {
+        "prototype": [
+          0.008957999991253018,
+          0.009015699964947999,
+          0.00878149998607114,
+          0.009134699997957796,
+          0.009798899991437793
+        ],
+        "reference": [
+          0.12895580002805218,
+          0.1295115000102669,
+          0.12949740001931787,
+          0.14548529998864979,
+          0.13897430000361055
+        ]
+      }
+    },
+    {
+      "checks": {
+        "boundary_H": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "6db198b0c9e6cbebf4fab7446d95fabcc4f3201b0fc3929c26510f51770ede7e",
+          "shape": [
+            29
+          ]
+        },
+        "boundary_h": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "ff2363ac424d991e1e6f184e8c9bc6c0629cc9cdad32ec66e7731e37d83faa43",
+          "shape": [
+            29
+          ]
+        },
+        "saved_gap_H": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "3cac8ef87b6b42cb6995838699fcd80fa1086e0b16891849ec8afc289b031766",
+          "shape": [
+            2549
+          ]
+        },
+        "saved_gap_h": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "a8cca11cdfaf0340f6b1b44008958b8654989a7da02495da786fa48146e7f280",
+          "shape": [
+            2549
+          ]
+        },
+        "trace_renewal_log_density": {
+          "dtype": "float64",
+          "exact": true,
+          "sha256": "f11565260a8dea253568d4207a938e7d8b5007091b26e3f8b6041c3e8cdbb606",
+          "shape": [
+            2
+          ]
+        }
+      },
+      "median_speedup": 8.30017793653463,
+      "mode": "one_element",
+      "timings_seconds": {
+        "prototype": [
+          0.016299999959301203,
+          0.016603299998678267,
+          0.015883899992331862,
+          0.01615550002316013,
+          0.022683800023514777
+        ],
+        "reference": [
+          0.13529290002770722,
+          0.1352449000114575,
+          0.1361571000306867,
+          0.13574429997242987,
+          0.13395689998287708
+        ]
+      }
+    }
+  ],
+  "runtime": {
+    "numpy": "2.4.6",
+    "python": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+    "scipy": "1.17.1"
+  },
+  "source_sha256": "6a2941e9182f06e37057a6cbd57ef395c8fe00fcf57dac9eb66a7877724ec6bd",
+  "status": "EXPERIMENTAL_NOT_CERTIFIED",
+  "trace_count": 2
+}

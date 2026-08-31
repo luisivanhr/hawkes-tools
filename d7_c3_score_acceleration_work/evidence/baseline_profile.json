@@ -1,0 +1,118 @@
+{
+  "available_memory": 9341276160,
+  "comparison": {
+    "arrays": {
+      "complete_gradients": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+        "shape": [
+          64,
+          128,
+          25
+        ]
+      },
+      "conditional_gradients": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+        "shape": [
+          64,
+          128,
+          25
+        ]
+      },
+      "conditional_log_likelihood": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+        "shape": [
+          64,
+          128
+        ]
+      },
+      "log_weights": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+        "shape": [
+          64,
+          128
+        ]
+      },
+      "proposal_log_density": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+        "shape": [
+          128
+        ]
+      },
+      "source_trace_log_density": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+        "shape": [
+          128
+        ]
+      },
+      "trace_gradients": {
+        "dtype": "float64",
+        "exact": true,
+        "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+        "shape": [
+          128,
+          25
+        ]
+      }
+    },
+    "diagnostics_exact": true,
+    "exact": true
+  },
+  "diagnostics": {
+    "archive_seed": 7752497181196880236,
+    "archive_size": 128,
+    "clipped_count": 0,
+    "conditional_gradient_parity_error": 3.552713678800501e-15,
+    "conditional_value_parity_error": 4.440892098500626e-15,
+    "full_boundary_and_conditional_terms": true,
+    "proposal_identity_error": 0.0,
+    "trace_archive_sha256": "e3dff806fe8f1cdf4c71bf5e1d7c00a39b60038ca46f2d202e5972252871751b"
+  },
+  "evaluation_seconds": 18.74265369999921,
+  "initialization_seconds": 2.4714953000075184,
+  "memory": {
+    "nonpaged_pool": 55616,
+    "num_page_faults": 146702,
+    "paged_pool": 639152,
+    "pagefile": 248274944,
+    "peak_nonpaged_pool": 55888,
+    "peak_paged_pool": 639328,
+    "peak_pagefile": 253124608,
+    "peak_wset": 253038592,
+    "private": 248274944,
+    "rss": 250134528,
+    "vms": 248274944,
+    "wset": 250134528
+  },
+  "raw": "training_shared_S00_R0_C00_A0.npz",
+  "raw_sha256": "6743c81d1863e272ae24a7dea51a57e98ea4683a456aff722ba607cbd1c09dce",
+  "read_reconstruction_seconds": 0.07978740002727136,
+  "receipt_sha256": "c98be9b5e1a87040442cc8490d792c3da56353a92950613427092cb24a0dae8e",
+  "runtime": {
+    "numpy": "2.4.6",
+    "python": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+    "scipy": "1.17.1"
+  },
+  "source_pins": {
+    "COMPLETE_ARTIFACT_MANIFEST.json": "3f7149b78f8fda72902642707e6f26b68690f4a096342e9d85b39066f7730525",
+    "D7_C3_ORTHOGONALIZED_OPT_1_RESULTS.json": "7a00aaf46f8db86af6e1cac90d6a8cee68daa38748be1f56f0aa30fc51c8cfd5",
+    "INDEPENDENT_SCIENTIFIC_AUDIT.md": "a12416e77e15ed4cdab6811de28b475053e25140e1261b8fb495fa15726d7cd2",
+    "ORTHOGONALIZED_OPT_CONTRACT.json": "eb8a41471de9153c0750240fac7ca0614c0a9b0c9a96488651536898b5e8a66b",
+    "gradient_sampling.py": "707c9e611b05d1a318f2403c09041aeb0ace8244cc4813f0bcf25f264e658d90",
+    "model_interface.py": "5426a0cc7b94613cdfedc10ba336280299d16e645436404f9ce766314ddbf349",
+    "run_experiment.py": "e2338108618b202e85807d1936a6da41f839ca4aec16098bcb85c8c4e2f9a1c8",
+    "vector_score.py": "3d5299e2416184ff611be1a33ef665248f3f814cf7dedaf89fc6b88485bad190"
+  },
+  "status": "BASELINE_EXACT"
+}

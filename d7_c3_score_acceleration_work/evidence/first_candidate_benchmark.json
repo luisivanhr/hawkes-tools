@@ -1,0 +1,549 @@
+{
+  "available_memory": 9374240768,
+  "candidate_sha256": "86438201d9dc219a170e43acdb7456580aa79a233dd1082aa62fc8b5efb42e32",
+  "rows": [
+    {
+      "io_reconstruction_seconds": 0.08233000000473112,
+      "raw": "training_shared_S00_R0_C00_A0.npz",
+      "raw_sha256": "6743c81d1863e272ae24a7dea51a57e98ea4683a456aff722ba607cbd1c09dce",
+      "trials": [
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "baseline",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 145656,
+            "paged_pool": 639056,
+            "pagefile": 249171968,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639184,
+            "peak_pagefile": 252522496,
+            "peak_wset": 253878272,
+            "private": 249171968,
+            "rss": 250597376,
+            "vms": 249171968,
+            "wset": 250597376
+          },
+          "seconds": 10.104431400017347,
+          "trial": 0
+        },
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "candidate",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 177414,
+            "paged_pool": 639152,
+            "pagefile": 249393152,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639184,
+            "peak_pagefile": 256319488,
+            "peak_wset": 257560576,
+            "private": 249393152,
+            "rss": 250544128,
+            "vms": 249393152,
+            "wset": 250544128
+          },
+          "seconds": 2.5999993999721482,
+          "trial": 0
+        },
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "candidate",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 209145,
+            "paged_pool": 639152,
+            "pagefile": 249577472,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639248,
+            "peak_pagefile": 256774144,
+            "peak_wset": 257560576,
+            "private": 249577472,
+            "rss": 250486784,
+            "vms": 249577472,
+            "wset": 250486784
+          },
+          "seconds": 2.637115999998059,
+          "trial": 1
+        },
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "baseline",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 238358,
+            "paged_pool": 639152,
+            "pagefile": 250499072,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639248,
+            "peak_pagefile": 256774144,
+            "peak_wset": 257560576,
+            "private": 250499072,
+            "rss": 251371520,
+            "vms": 250499072,
+            "wset": 251371520
+          },
+          "seconds": 10.662297500006389,
+          "trial": 1
+        },
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "baseline",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 260696,
+            "paged_pool": 639152,
+            "pagefile": 251101184,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639248,
+            "peak_pagefile": 256774144,
+            "peak_wset": 257560576,
+            "private": 251101184,
+            "rss": 251887616,
+            "vms": 251101184,
+            "wset": 251887616
+          },
+          "seconds": 10.35076530004153,
+          "trial": 2
+        },
+        {
+          "comparison": {
+            "arrays": {
+              "complete_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "1326ef2afa0fcedc966c9d69a20577fe0482ab479bf905efa446cd5e5626aefb",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "e80380f933dfbdeffed01009d7fe8406d84e6d4ace6028997444d633208d5161",
+                "shape": [
+                  64,
+                  128,
+                  25
+                ]
+              },
+              "conditional_log_likelihood": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "31f8f96c278e0567cce91b55c7af09a91d682e256b2c4d01c6c368a8ef1fbcc5",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "log_weights": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "91921c1bb312c121c02be660eeec28faafd6551de0ca1462ed4253ad9f5fc8db",
+                "shape": [
+                  64,
+                  128
+                ]
+              },
+              "proposal_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "source_trace_log_density": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "d3855d3c88a5134ca6b7efe99e06467c0caf450a5e7dba0e060260179dc69927",
+                "shape": [
+                  128
+                ]
+              },
+              "trace_gradients": {
+                "dtype": "float64",
+                "exact": true,
+                "sha256": "03fabf160cacc8f5297f8246ed2120bcdb3cca241665a4d5e62e839e71fc3dd0",
+                "shape": [
+                  128,
+                  25
+                ]
+              }
+            },
+            "exact": true
+          },
+          "diagnostics_exact": true,
+          "exact": true,
+          "implementation": "candidate",
+          "memory": {
+            "nonpaged_pool": 55616,
+            "num_page_faults": 283004,
+            "paged_pool": 639152,
+            "pagefile": 250638336,
+            "peak_nonpaged_pool": 55888,
+            "peak_paged_pool": 639248,
+            "peak_pagefile": 256774144,
+            "peak_wset": 257560576,
+            "private": 250638336,
+            "rss": 251416576,
+            "vms": 250638336,
+            "wset": 251416576
+          },
+          "seconds": 2.6531125000328757,
+          "trial": 2
+        }
+      ]
+    }
+  ],
+  "status": "EXACT",
+  "timing_method": "Same process, alternating order each repeat. First evaluation of each implementation/input is reported separately; no source-output lookup."
+}
