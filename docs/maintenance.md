@@ -3,7 +3,8 @@
 ## Repository Hygiene
 
 Keep local prompt and agent files out of the repository. `.gitignore` excludes
-local agent directories and common prompt file names. Before committing:
+local agent directories, common prompt file names, Python/Numba caches, and
+disposable experiment outputs. Before committing:
 
 ```powershell
 git status --short
@@ -11,6 +12,46 @@ git status --short
 
 If generated cache files appear, clean only generated cache artifacts. Do not
 use broad destructive commands against the repository.
+
+## Experiment Storage
+
+Keep this checkout focused on the standalone `hawkes_tools` library, its tests,
+examples, benchmarks and public documentation. Renewal-Hawkes estimation studies
+now live in the separate sibling workspace `../renewal-hawkes-research/`.
+Its README identifies the active estimator, current study, preserved findings,
+latest fitted curves and the verified relocation inventory.
+
+New research studies must be created in that research workspace. Put raw
+observations, evaluation caches and compiled/runtime scratch in its ignored
+`_artifacts/<study-id>/` directory. Keep scripts, seed registries, configuration,
+receipts, selected models, reports, final figures and plotted arrays with the
+study. Never put the sole seed record or finding in disposable output.
+
+For library-specific large benchmarks, this checkout retains the read-only
+`tools/check_experiment_storage.py` preflight. Pass the peak additional disk
+requirement, including temporary and simultaneous worker output. Default limits
+are 1 GiB of Git data, 5 GiB of project data including expected growth, and a
+10 GiB free-space reserve. New library benchmark scratch belongs in its ignored
+`_artifacts/` directory. This preflight is not a background quota.
+
+The research workspace excludes its immutable historical archive from ordinary
+Git staging and snapshots. The active numerical source closure is separately
+vendored and checksum-pinned; new studies have their own source locks, peak
+storage checks and automatic reclamation of replayed evaluation caches. This
+keeps future runtime imports independent of obsolete worktrees and their raw
+simulations. See that workspace's `STORAGE_POLICY.md` for retention rules.
+
+The 2026-09-22 separation preserved all research source, findings, reports,
+seed/input records and the latest study's observations. It deleted obsolete
+simulation/trace archives and retired the two old worktrees after retaining
+unique files and edits. Named Git history was retained. The exact old-to-new
+path and SHA-256 mapping lives in the research maintenance records. Original
+historical manifests remain unchanged and can refer to deliberately deleted
+obsolete outputs; they are evidence, not current resume permissions.
+
+Ignore rules do not untrack existing files or override `git add -f`. Stage
+source and report paths explicitly. Do not use immediate Git object pruning,
+history deletion or whole-tree backup archives as routine storage management.
 
 ## Documentation Policy
 

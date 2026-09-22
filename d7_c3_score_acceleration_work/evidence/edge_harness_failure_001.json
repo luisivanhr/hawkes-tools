@@ -1,9 +1,0 @@
-{
-  "stage": "fixture construction before candidate/reference comparison",
-  "exception": "FloatingPointError: underflow encountered in nextafter",
-  "cause": "np.nextafter(0,1) was constructing the subnormal fixture inside np.errstate(all='raise')",
-  "repair": "Construct this constant before entering the caller error-mode loop",
-  "scientific_evaluator_mismatch": false,
-  "candidate_changed": false,
-  "new_random_samples": 0
-}

@@ -24,3 +24,43 @@ GEMINI.md
 agent-prompts/
 agent_prompts/
 prompts/
+
+# Generated Python, Numba, notebook and build caches
+__pycache__/
+*.pyc
+*.pyo
+*.nbc
+*.nbi
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
+/build/
+/dist/
+/.tmp/
+/.tmp_pycache/
+
+# New experiments: disposable raw output only. Keep source, seeds, manifests,
+# findings and final report assets outside this directory (docs/maintenance.md).
+/_artifacts/
+
+# Existing D7 layouts: ignore raw data and intermediate optimizer payloads,
+# without ignoring whole work folders or their receipts and reports.
+/d7_*_work/data/**/*.npz
+/d7_*_work/data/**/*.npy
+/d7_*_work/**/RAW*.npz
+/d7_*_work/**/RAW*.npy
+/d7_*_work/**/cache/**/*.npz
+/d7_*_work/fits/**/evaluations/*.npz
+/d7_*_work/**/*checkpoint*.json
+/d7_*_work/**/*CHECKPOINT*.json
+
+# Seed arrays/registries remain eligible for versioning in existing layouts.
+!/d7_*_work/**/*[Ss][Ee][Ee][Dd]*.npy
+!/d7_*_work/**/*[Ss][Ee][Ee][Dd]*.npz
+!/d7_*_work/**/*[Ss][Ee][Ee][Dd]*.json
+
+# Existing full-tree preservation archive stays on disk; avoid another Git copy.
+/publication_revision_finding182_work/preservation/**/*_full_tree_*.zip
