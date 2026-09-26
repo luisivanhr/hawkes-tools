@@ -606,7 +606,17 @@ class SimuHawkes(SimuPointProcess):
                 kernel = self.kernels[i, j]
                 if kernel.is_zero():
                     continue
-                if isinstance(kernel, (HawkesKernelExp, HawkesKernelSumExp)):
+                if isinstance(kernel, HawkesKernelSumExp):
+                    # Each positive exponential decreases between events;
+                    # clipping the net signed convolution misses later rises.
+                    total += sumexp_kernel_convolution(
+                        t,
+                        timestamps[j],
+                        np.maximum(kernel.intensities, 0.0),
+                        kernel.decays,
+                        include_current=include_current_jumps,
+                    )
+                elif isinstance(kernel, HawkesKernelExp):
                     total += max(
                         _kernel_convolution(
                             kernel,

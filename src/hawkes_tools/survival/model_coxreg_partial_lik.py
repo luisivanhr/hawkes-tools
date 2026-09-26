@@ -99,10 +99,22 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
         X_sorted = X[order]
         censoring_sorted = self.censoring[order]
 
-        shift = float(np.max(scores_sorted))
-        exp_scores = np.exp(scores_sorted - shift)
-        cum_exp = np.cumsum(exp_scores)
-        cum_weighted = np.cumsum(exp_scores[:, None] * X_sorted, axis=0)
+        # Every prefix is a distinct risk set. A global score maximum may lie
+        # outside an earlier prefix and underflow all of its risk weights.
+        shifts = np.maximum.accumulate(scores_sorted)
+        cum_exp = np.empty_like(scores_sorted)
+        cum_weighted = np.empty(X_sorted.shape, dtype=float)
+        running_exp = 0.0
+        running_weighted = np.zeros(self.n_features)
+        previous_shift = shifts[0]
+        for index, score in enumerate(scores_sorted):
+            rescale = np.exp(previous_shift - shifts[index])
+            weight = np.exp(score - shifts[index])
+            running_exp = running_exp * rescale + weight
+            running_weighted = running_weighted * rescale + weight * X_sorted[index]
+            cum_exp[index] = running_exp
+            cum_weighted[index] = running_weighted
+            previous_shift = shifts[index]
 
         group_end = np.empty(times_sorted.shape[0], dtype=np.int64)
         start = 0
@@ -113,7 +125,7 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
             group_end[start : end + 1] = end
             start = end + 1
 
-        return scores_sorted, X_sorted, censoring_sorted, cum_exp, cum_weighted, group_end, shift
+        return scores_sorted, X_sorted, censoring_sorted, cum_exp, cum_weighted, group_end, shifts
 
     def _loss(self, coeffs) -> float:
         (
@@ -123,12 +135,16 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
             cum_exp,
             _,
             group_end,
-            shift,
+            shifts,
         ) = self._risk_cache(coeffs)
         failure_positions = np.flatnonzero(censoring_sorted != 0)
         risk_indices = group_end[failure_positions]
-        log_risk = shift + np.log(cum_exp[risk_indices])
-        loss = np.sum(log_risk - scores_sorted[failure_positions])
+        # Subtract scores before adding the log sum, preserving small losses
+        # even when all scores have a large common offset.
+        loss = np.sum(
+            (shifts[risk_indices] - scores_sorted[failure_positions])
+            + np.log(cum_exp[risk_indices])
+        )
         return float(loss / self.n_failures)
 
     def _grad(self, coeffs, out) -> None:

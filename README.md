@@ -165,7 +165,7 @@ The notebook `examples/hawkes_time_rescaling_gof.ipynb` demonstrates
 time-rescaling goodness-of-fit diagnostics for univariate Hawkes processes with
 exponential, sum-exponential, power-law, and time-function kernels.
 
-The restored full gallery sanity notebook covers 25 example records with
+The restored full gallery sanity notebook covers 26 example records with
 standalone replacements, including vendored finance/GLM datasets and the
 original-scale Hawkes EM example. The mixed exponential/time-function
 simulation path uses exact recursive exponential updates plus JIT-backed
@@ -182,14 +182,14 @@ Use the requested environment:
 
 The current stabilization baseline is:
 
-- `unittest discover -s tests`: 260 tests run, OK, with no skips.
+- `unittest discover -s tests`: 273 tests run, OK, with no skips.
 - Equivalence ledger tests: 171 source-backed Hawkes cases from the frozen
   manifest; current classification is 171 pass, 0 unresolved equivalence gaps,
   and 0 optional backend cases.
 - Equivalence status: 171 pass, 0 xfail, 0 optional skips.
 - The ledger report script prints the counts by `pass`,
   `xfail_equivalence_gap`, and `skip_optional_backend`.
-- Full gallery notebook execution: 25 recorded examples, OK.
+- Full gallery notebook execution: 26 recorded examples, OK.
 - All scripts in `examples/`: smoke-tested successfully from this checkout.
 - Clean-directory import: verified with `PYTHONPATH` set to the absolute
   `hawkes-tools/src` directory.

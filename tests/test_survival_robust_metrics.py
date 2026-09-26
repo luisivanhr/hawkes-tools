@@ -263,7 +263,8 @@ class SurvivalTest(unittest.TestCase):
         n_lags = np.repeat(1, 3).astype(dtype="uint64")
         lagged, _, _ = LongitudinalFeaturesLagger(n_lags).fit_transform(X)
         model = ModelSCCS(n_intervals=3, n_lags=n_lags).fit(lagged, y)
-        self.assertEqual(model.get_lip_max(), 0.5)
+        # Maximum per-case bound: one event and squared feature diameter 4.
+        self.assertEqual(model.get_lip_max(), 1.0)
         with self.assertRaisesRegex(NotImplementedError, "get_lip_max"):
             model.get_lip_best()
 

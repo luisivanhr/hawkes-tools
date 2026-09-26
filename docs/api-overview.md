@@ -36,6 +36,10 @@ inversion estimator with basis recovery and plotting, cumulant matching,
 conditional-law estimation, model losses, gradients, Hessian helpers, and
 plotting helpers.
 
+Sum-exponential simulation bounds future intensity by the positive exponential
+components. This supports nonnegative delayed kernels represented by a mixture
+of positive and negative coefficients, whose net value can rise after an event.
+
 ## Linear Models and GLM Utilities
 
 `hawkes_tools.linear_model` provides linear, logistic, Poisson, and
@@ -99,6 +103,17 @@ combinations fail with explicit validation errors.
 
 `hawkes_tools.survival` includes Cox and SCCS models, simulators, convolutional
 SCCS wrappers, Kaplan-Meier, and Nelson-Aalen helpers.
+
+`ConvSCCS` retains the optimizer's coefficients, including zero-lag exposure
+effects. Such exposures can overlap, so their coefficients are not automatically
+mean-centered after fitting. `ModelSCCS.get_lip_max()` returns the maximum
+per-case Hessian bound, which also bounds the case-averaged objective and stays
+unchanged when identical cases are replicated.
+
+`ModelCoxRegPartialLik` uses a separately scaled exponential accumulation for
+each cumulative risk set. Its Breslow treatment of ties includes all subjects
+with observed time greater than or equal to the failure time, including
+censored subjects at that time.
 
 `hawkes_tools.robust` includes robust linear regression, robust scale
 estimators, and first-order robust loss models.

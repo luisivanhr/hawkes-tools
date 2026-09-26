@@ -407,7 +407,9 @@ def sumexp_intensity_bound_reference(
                 tmp,
                 include_current,
             )
-            total += max(float(np.dot(adjacency[i, j, :], tmp)), 0.0)
+            # Positive components decrease between events. Signed components
+            # can cancel now and rise later, so clip before summing them.
+            total += float(np.dot(np.maximum(adjacency[i, j, :], 0.0), tmp))
     return float(max(total, 0.0))
 
 
@@ -1186,8 +1188,12 @@ def _sumexp_intensity_bound_numba_impl(t, events, sizes, baseline, adjacency, de
         if baseline_i > 0.0:
             total += baseline_i
         for j in range(n_nodes):
-            convolution = 0.0
             for u in range(n_decays):
+                # Drop negative components independently: their different
+                # decay rates cannot safely cancel in a future envelope.
+                amplitude = adjacency[i, j, u]
+                if amplitude <= 0.0:
+                    continue
                 feature = 0.0
                 decay = decays[u]
                 for k in range(sizes[j]):
@@ -1195,9 +1201,7 @@ def _sumexp_intensity_bound_numba_impl(t, events, sizes, baseline, adjacency, de
                     if tk > t or (tk == t and not include_current):
                         break
                     feature += decay * math.exp(-decay * (t - tk))
-                convolution += adjacency[i, j, u] * feature
-            if convolution > 0.0:
-                total += convolution
+                total += amplitude * feature
     return total if total > 0.0 else 0.0
 
 
