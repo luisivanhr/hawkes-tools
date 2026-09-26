@@ -3,12 +3,80 @@
 from __future__ import annotations
 
 import numpy as np
+from numba import njit
 from scipy import sparse
 
 from hawkes_tools.base_model import ModelFirstOrder
 from hawkes_tools.preprocessing.utils import safe_array
 
 __all__ = ["ModelCoxRegPartialLik"]
+
+
+@njit(cache=True)
+def _cox_risk_prefixes(scores, features, times):
+    """Accumulate scaled risk masses and normalized feature means in O(n p)."""
+    n_samples, n_features = features.shape
+    shifts = np.empty(n_samples)
+    masses = np.empty(n_samples)
+    means = np.empty((n_samples, n_features))
+    group_end = np.empty(n_samples, dtype=np.int64)
+    shift = scores[0]
+    mass = 1.0
+    shifts[0] = shift
+    masses[0] = mass
+    means[0] = features[0]
+    tiny = np.finfo(np.float64).tiny
+
+    for index in range(1, n_samples):
+        new_shift = max(shift, scores[index])
+        rescale = np.exp(shift - new_shift)
+        old_mass = mass * rescale
+        added_mass = np.exp(scores[index] - new_shift)
+        new_mass = old_mass + added_mass
+        old_weight = old_mass / new_mass
+        added_weight = added_mass / new_mass
+
+        # A tiny probability can still contribute a finite weighted feature.
+        # Split its exponential before multiplying, avoiding early underflow.
+        old_factor, old_factor_tail = old_weight, 1.0
+        if old_weight < tiny or rescale < tiny:
+            log_weight = np.log(mass) + (shift - new_shift) - np.log(new_mass)
+            old_factor = np.exp(0.5 * log_weight)
+            old_factor_tail = old_factor
+        added_factor, added_factor_tail = added_weight, 1.0
+        if added_weight < tiny:
+            log_weight = (scores[index] - new_shift) - np.log(new_mass)
+            added_factor = np.exp(0.5 * log_weight)
+            added_factor_tail = added_factor
+
+        for feature in range(n_features):
+            previous = means[index - 1, feature]
+            value = features[index, feature]
+            if (previous >= 0.0) == (value >= 0.0):
+                # Same-sign differences cannot overflow. Interpolate from the
+                # dominant endpoint to retain small residual contributions.
+                if old_weight <= added_weight:
+                    mean = value + ((previous - value) * old_factor) * old_factor_tail
+                else:
+                    mean = previous + ((value - previous) * added_factor) * added_factor_tail
+            else:
+                # Opposite-sign differences can overflow; weighted terms cannot.
+                mean = (previous * old_factor) * old_factor_tail
+                mean += (value * added_factor) * added_factor_tail
+            means[index, feature] = mean
+        shift, mass = new_shift, new_mass
+        shifts[index] = shift
+        masses[index] = mass
+
+    start = 0
+    while start < n_samples:
+        end = start
+        while end + 1 < n_samples and times[end + 1] == times[start]:
+            end += 1
+        for index in range(start, end + 1):
+            group_end[index] = end
+        start = end + 1
+    return masses, means, group_end, shifts
 
 
 class ModelCoxRegPartialLik(ModelFirstOrder):
@@ -99,35 +167,25 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
         X_sorted = X[order]
         censoring_sorted = self.censoring[order]
 
-        # Every prefix is a distinct risk set. A global score maximum may lie
-        # outside an earlier prefix and underflow all of its risk weights.
-        shifts = np.maximum.accumulate(scores_sorted)
-        cum_exp = np.empty_like(scores_sorted)
-        cum_weighted = np.empty(X_sorted.shape, dtype=float)
-        running_exp = 0.0
-        running_weighted = np.zeros(self.n_features)
-        previous_shift = shifts[0]
-        for index, score in enumerate(scores_sorted):
-            rescale = np.exp(previous_shift - shifts[index])
-            weight = np.exp(score - shifts[index])
-            running_exp = running_exp * rescale + weight
-            running_weighted = running_weighted * rescale + weight * X_sorted[index]
-            cum_exp[index] = running_exp
-            cum_weighted[index] = running_weighted
-            previous_shift = shifts[index]
-
-        group_end = np.empty(times_sorted.shape[0], dtype=np.int64)
-        start = 0
-        while start < times_sorted.shape[0]:
-            end = start
-            while end + 1 < times_sorted.shape[0] and times_sorted[end + 1] == times_sorted[start]:
-                end += 1
-            group_end[start : end + 1] = end
-            start = end + 1
-
-        return scores_sorted, X_sorted, censoring_sorted, cum_exp, cum_weighted, group_end, shifts
+        # Each prefix has its own scale. Normalized feature means avoid an
+        # overflowing numerator even when the eventual weighted mean is finite.
+        cum_exp, risk_means, group_end, shifts = _cox_risk_prefixes(
+            scores_sorted, X_sorted, times_sorted
+        )
+        return scores_sorted, X_sorted, censoring_sorted, cum_exp, risk_means, group_end, shifts
 
     def _loss(self, coeffs) -> float:
+        return self._loss_from_risk(self._risk_cache(coeffs))
+
+    def _grad(self, coeffs, out) -> None:
+        self._grad_from_risk(self._risk_cache(coeffs), out)
+
+    def _loss_and_grad(self, coeffs, out) -> float:
+        risk = self._risk_cache(coeffs)
+        self._grad_from_risk(risk, out)
+        return self._loss_from_risk(risk)
+
+    def _loss_from_risk(self, risk) -> float:
         (
             scores_sorted,
             _,
@@ -136,7 +194,7 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
             _,
             group_end,
             shifts,
-        ) = self._risk_cache(coeffs)
+        ) = risk
         failure_positions = np.flatnonzero(censoring_sorted != 0)
         risk_indices = group_end[failure_positions]
         # Subtract scores before adding the log sum, preserving small losses
@@ -147,20 +205,20 @@ class ModelCoxRegPartialLik(ModelFirstOrder):
         )
         return float(loss / self.n_failures)
 
-    def _grad(self, coeffs, out) -> None:
+    def _grad_from_risk(self, risk, out) -> None:
         (
             _,
             X_sorted,
             censoring_sorted,
-            cum_exp,
-            cum_weighted,
+            _,
+            risk_means,
             group_end,
             _,
-        ) = self._risk_cache(coeffs)
+        ) = risk
         out.fill(0.0)
         failure_positions = np.flatnonzero(censoring_sorted != 0)
         risk_indices = group_end[failure_positions]
-        weighted_mean = cum_weighted[risk_indices] / cum_exp[risk_indices, None]
+        weighted_mean = risk_means[risk_indices]
         out[:] = np.sum(weighted_mean - X_sorted[failure_positions], axis=0)
         out[:] /= self.n_failures
 

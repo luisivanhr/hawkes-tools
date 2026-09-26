@@ -39,7 +39,7 @@ First calls into JIT-backed helpers include compile latency, so benchmark
 output separates cold, warm, and direct reference timings. Numba may write
 `.nbc` / `.nbi` cache files near `__pycache__`; cache path or permission issues
 should be fixed directly rather than by changing numerical assertions. The
-general unittest baseline is 273 tests OK with no skips. Equivalence status
+general unittest baseline is 277 tests OK with no skips. Equivalence status
 remains 171 pass, 0 xfail, and 0 optional skips.
 
 ## Full Module-Family Ledger

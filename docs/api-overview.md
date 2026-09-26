@@ -110,10 +110,13 @@ mean-centered after fitting. `ModelSCCS.get_lip_max()` returns the maximum
 per-case Hessian bound, which also bounds the case-averaged objective and stays
 unchanged when identical cases are replicated.
 
-`ModelCoxRegPartialLik` uses a separately scaled exponential accumulation for
-each cumulative risk set. Its Breslow treatment of ties includes all subjects
-with observed time greater than or equal to the failure time, including
-censored subjects at that time.
+`ModelCoxRegPartialLik` uses a Numba-compiled, separately scaled exponential
+accumulation for each cumulative risk set. It maintains normalized feature
+means to avoid overflowing weighted sums, and `loss_and_grad` shares one risk
+calculation. The first evaluation includes JIT compilation or cache loading;
+subsequent evaluations use the compiled recurrence. Its Breslow treatment of
+ties includes all subjects with observed time greater than or equal to the
+failure time, including censored subjects at that time.
 
 `hawkes_tools.robust` includes robust linear regression, robust scale
 estimators, and first-order robust loss models.

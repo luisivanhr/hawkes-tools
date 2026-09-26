@@ -25,6 +25,7 @@ class BenchmarkSmokeTest(unittest.TestCase):
         self.assertIn("cold=", stdout)
         self.assertIn("warm=", stdout)
         self.assertIn("reference=", stdout)
+        self.assertIn("model.cox.loss_and_grad:", stdout)
 
 
 if __name__ == "__main__":

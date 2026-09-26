@@ -13,7 +13,7 @@ Using the maintainer workstation interpreter:
 Expected current baseline:
 
 ```text
-Ran 273 tests
+Ran 277 tests
 OK
 ```
 
@@ -26,6 +26,11 @@ python -m unittest discover -s tests
 The suite includes regression checks for signed sum-exponential simulation
 envelopes, overlapping zero-lag SCCS exposures, replication-invariant SCCS
 optimizer bounds, and numerically stable Cox risk sets with Breslow ties.
+
+`benchmarks/benchmark_numba_hot_paths.py` reports first-call, warmed, and Python
+reference timings for joint Cox loss/gradient evaluation alongside the Hawkes
+hot paths. Timings are diagnostic; the smoke test does not impose a speed
+threshold.
 
 ## Dataset Tests
 

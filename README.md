@@ -182,7 +182,7 @@ Use the requested environment:
 
 The current stabilization baseline is:
 
-- `unittest discover -s tests`: 273 tests run, OK, with no skips.
+- `unittest discover -s tests`: 277 tests run, OK, with no skips.
 - Equivalence ledger tests: 171 source-backed Hawkes cases from the frozen
   manifest; current classification is 171 pass, 0 unresolved equivalence gaps,
   and 0 optional backend cases.
