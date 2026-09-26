@@ -13,7 +13,7 @@ Using the maintainer workstation interpreter:
 Expected current baseline:
 
 ```text
-Ran 260 tests
+Ran 277 tests
 OK
 ```
 
@@ -22,6 +22,15 @@ For a normal development environment:
 ```powershell
 python -m unittest discover -s tests
 ```
+
+The suite includes regression checks for signed sum-exponential simulation
+envelopes, overlapping zero-lag SCCS exposures, replication-invariant SCCS
+optimizer bounds, and numerically stable Cox risk sets with Breslow ties.
+
+`benchmarks/benchmark_numba_hot_paths.py` reports first-call, warmed, and Python
+reference timings for joint Cox loss/gradient evaluation alongside the Hawkes
+hot paths. Timings are diagnostic; the smoke test does not impose a speed
+threshold.
 
 ## Dataset Tests
 
@@ -66,7 +75,7 @@ The restored gallery notebook is:
 examples\gallery_reproduction.ipynb
 ```
 
-It should execute 19 code cells and produce 25 gallery records. Use an
+It should execute 20 code cells and produce 26 gallery records. Use an
 in-memory notebook execution check so the notebook file is not rewritten during
 routine validation.
 

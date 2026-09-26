@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import time
+from unittest.mock import patch
 
 import numpy as np
 
@@ -28,6 +29,8 @@ from hawkes_tools.hawkes import (  # noqa: E402
     SimuPoissonProcess,
 )
 from hawkes_tools.hawkes import numeric  # noqa: E402
+from hawkes_tools.survival import ModelCoxRegPartialLik  # noqa: E402
+from hawkes_tools.survival.model_coxreg_partial_lik import _cox_risk_prefixes  # noqa: E402
 
 
 def _time_once(func):
@@ -182,11 +185,40 @@ def benchmark_learners():
         _print_timing(name, _time_once(wrapper), _time_average(wrapper, repeats=2), _time_average(wrapper, repeats=2))
 
 
+def benchmark_cox():
+    rng = np.random.default_rng(106)
+    features = rng.normal(size=(1000, 5))
+    times = rng.uniform(0.0, 10.0, size=1000)
+    censoring = rng.integers(0, 2, size=1000, dtype=np.ushort)
+    coeffs = rng.normal(size=5) * 0.2
+    model = ModelCoxRegPartialLik().fit(features, times, censoring)
+
+    def wrapper():
+        return model.loss_and_grad(coeffs)
+
+    def reference():
+        with patch(
+            "hawkes_tools.survival.model_coxreg_partial_lik._cox_risk_prefixes",
+            _cox_risk_prefixes.py_func,
+        ):
+            return model.loss_and_grad(coeffs)
+
+    cold = _time_once(wrapper)
+    warm = _time_average(wrapper)
+    reference_time = _time_average(reference)
+    value, gradient = wrapper()
+    expected_value, expected_gradient = reference()
+    np.testing.assert_allclose(value, expected_value, rtol=1e-12)
+    np.testing.assert_allclose(gradient, expected_gradient, atol=1e-12)
+    _print_timing("model.cox.loss_and_grad", cold, warm, reference_time)
+
+
 def main():
     print(f"numba_enabled={numeric.NUMBA_AVAILABLE}")
     benchmark_numeric()
     benchmark_models_and_simulation()
     benchmark_learners()
+    benchmark_cox()
 
 
 if __name__ == "__main__":

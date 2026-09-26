@@ -107,6 +107,7 @@ class ModelSCCS(ModelFirstOrder):
         out[:] /= self.n_cases
 
     def get_lip_max(self) -> float:
+        """Bound the averaged Hessian by the largest per-case bound."""
         best = 0.0
         for X, y, censoring_i in zip(self._features_dense, self.labels, self.censoring):
             c = int(censoring_i)
@@ -119,7 +120,11 @@ class ModelSCCS(ModelFirstOrder):
                 diffs = Xc[i + 1 :] - Xc[i]
                 if diffs.size:
                     dmax = max(dmax, float(np.max(np.sum(diffs * diffs, axis=1))))
-            best = max(best, n_events * dmax / (4.0 * self.n_cases))
+            # The case Hessian is n_events times a feature covariance.
+            # Its spectral norm is at most n_events * diameter**2 / 4.
+            # Averaging case Hessians cannot exceed their largest bound;
+            # dividing that maximum by n_cases would underestimate it.
+            best = max(best, n_events * dmax / 4.0)
         return float(best)
 
     def get_lip_mean(self) -> float:

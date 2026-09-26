@@ -113,8 +113,10 @@ class ConvSCCS:
             method="L-BFGS-B",
             options={"maxiter": self.max_iter, "ftol": self.tol, "gtol": self.tol, "maxls": 20},
         )
+        # Zero-lag exposures need not be mutually exclusive or exhaustive.
+        # Recentring them can change both the likelihood and the penalty, so
+        # retain the coefficients selected by the optimization objective.
         self._coeffs = np.asarray(result.x if result.success or result.x is not None else beta0, dtype=float)
-        self._center_singleton_identifiability()
         self._fitted = True
         if confidence_intervals:
             self.confidence_intervals = self._confidence_intervals(event_counts, expected_counts, confidence_level)
@@ -266,14 +268,6 @@ class ConvSCCS:
         for length in lengths:
             yield start, int(length)
             start += int(length)
-
-    def _center_singleton_identifiability(self):
-        singleton = np.asarray([int(lag) == 0 for lag in self.n_lags])
-        if not np.any(singleton):
-            return
-        indices = [self._features_offset[i] for i, is_single in enumerate(singleton) if is_single]
-        if len(indices) > 1:
-            self._coeffs[indices] -= float(np.mean(self._coeffs[indices]))
 
     def _confidence_intervals(self, event_counts, expected_counts, confidence_level):
         if confidence_level <= 0 or confidence_level >= 1:
